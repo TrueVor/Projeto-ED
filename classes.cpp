@@ -85,17 +85,48 @@ void SeqSet::Inserir(pacote& _p) {
     }
 }
  
-
-void SeqSet::LerArquivo() {  //TESTE
-    Bloco novo;
+void SeqSet::ImprimirSS() {
     ifstream arq;
-    arq.read((char*) &cabSS, sizeof(Cabecalho)); //le dados do cabeçalho
-    cout << "Numero de Blocos: "<< cabSS.num << " Posicao do Primeiro: " << cabSS.posPrimeiro << " Proximo: " << cabSS.posProximo << endl;
-    arq.read((char*) &novo, sizeof(Bloco)); //le dados do primeiro bloco
-    cout << novo.cabBloco.quantidade << " "<< novo.cabBloco.proximo<<" "<< novo.idBloco << endl;
-    for (int i = 0; i < novo.cabBloco.quantidade; i++) {
-        cout << novo.dados[i].tamanho << " ";
+    Bloco percorre;
+    string source, dest, info, prot; //para imprimir os vetores de char
+    arq.read((char*) &cabSS,sizeof(Cabecalho));
+    cout << "Numero de Blocos: " << cabSS.num << "   Pos do primeiro: " 
+    << cabSS.posPrimeiro << "   Pos do proximo disponível: " <<  cabSS.posProximo << endl;
+    //lendo o primeiro bloco
+    arq.seekg(cabSS.posPrimeiro*sizeof(Bloco)); 
+    //imprimindo os dados 
+    cout << "BLOCO " << percorre.idBloco << ":" << endl;
+    for (unsigned i = 0; i < percorre.cabBloco.quantidade; i++) {
+        cout << percorre.dados[i].indice << " ";
+        cout << percorre.dados[i].tempo << " ";
+        source = percorre.dados[i].origem;
+        cout << source << " ";
+        dest =  percorre.dados[i].destino;
+        cout << dest << " ";
+        prot =  percorre.dados[i].protocolo;
+        cout << prot << " ";
+        cout << percorre.dados[i].tamanho;
+        info = percorre.dados[i].infomarcao;
+        cout << info << endl;
     }
-    cout << endl;
+    for (int i = 1; i < cabSS.num; i++) {
+        arq.seekg(percorre.cabBloco.proximo*sizeof(Bloco)+sizeof(Cabecalho));
+        arq.read((char*) &percorre, sizeof(Bloco));
+        cout << "BLOCO " << percorre.idBloco << ":" << endl;
+
+        for (unsigned i = 0; i < percorre.cabBloco.quantidade; i++) {
+            cout << percorre.dados[i].indice << " ";
+            cout << percorre.dados[i].tempo << " ";
+            source = percorre.dados[i].origem;
+            cout << source << " ";
+            dest =  percorre.dados[i].destino;
+            cout << dest << " ";
+            prot =  percorre.dados[i].protocolo;
+            cout << prot << " ";
+            cout << percorre.dados[i].tamanho;
+            info = percorre.dados[i].infomarcao;
+            cout << info << endl;
+        }
+    }
     arq.close();
 }
