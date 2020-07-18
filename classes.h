@@ -45,7 +45,7 @@ class SeqSet {
     public:
     SeqSet();
     void Inserir(pacote& _p);  
-    Bloco BuscarBloco (unsigned _t); 
+    Bloco BuscarBloco (pacote& _p); 
     void LerArquivo();
     void EscreverNoArquivo(Bloco& _b);
 };
