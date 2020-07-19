@@ -83,60 +83,49 @@ void SeqSet::Inserir(pacote& _p) {
             arq.seekp(sizeof(Cabecalho)); // Corrige o ponteiro para a posição relativa 0
             arq.write((char*) &aux, sizeof(Bloco));
         } else {
-            unsigned PosAbs;
             aux = BuscarBloco(_p);
-            if(aux.cabBloco.proximo == -1){ // Inserir no ultimo bloco
-                PosAbs = (sizeof(Bloco)*(cabSS.num - 1)) + sizeof(Cabecalho); // Posição Absoluta do ultimo bloco
-                arq.seekg(PosAbs); // arruma o ponteiro de leitura
-                arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
-                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
-                    for(int i = 0; i < limBloco; i++){
-                        aux2.dados[0+i] = aux.dados[(limBloco/2)+i]; // Move o dado de aux para aux2
-                        aux.dados[(limBloco/2)+i] = {}; // Limpa o dado em aux
-                    }
-                    // Atualiza os devidos cabeçalhos
-                    aux.cabBloco.quantidade = limBloco/2;
-                    aux.cabBloco.proximo = cabSS.posProximo;
-                    aux2.idBloco = cabSS.posProximo;
-                    aux2.cabBloco.quantidade = limBloco/2;
-                    aux2.cabBloco.proximo = -1;
-                    cabSS.num += 1;
-                    cabSS.posProximo += cabSS.num;
-                    // Confere qual dos dois blocos inserir o valor _p
-                    if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){ // Insere no pacote original
-                        aux.dados[limBloco/2] = _p;
-                        aux.cabBloco.quantidade += 1;
-                        selectionSort(aux.dados, aux.cabBloco.quantidade);
-                    } else { // Insere no pacote criado
-                        aux2.dados[limBloco/2] = _p;
-                        aux2.cabBloco.quantidade += 1;
-                        selectionSort(aux2.dados, aux2.cabBloco.quantidade);
-                    }
-                    arq.seekp(0); // Corrige o ponteiro para armazenamento do Cabeçalho
-                    arq.write((char*) &cabSS, sizeof(Cabecalho));
-                    PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
-                    arq.seekp(PosAbs); // Correção do ponteiro para a posição do Bloco Aux
-                    arq.write((char*) &aux, sizeof(Bloco));
-                    PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
-                    arq.seekp(PosAbs); // Correção do ponteiro para a posição do Bloco Aux2
-                    arq.write((char*) &aux2, sizeof(Bloco));
-                } else { // Do contrário, apenas inserir o dado no ultimo bloco
-                    aux.dados[aux.cabBloco.quantidade] = _p;
+
+            arq.seekg((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho)); // arruma o ponteiro de leitura
+            arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
+            if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
+                for(int i = 0; i < (limBloco/2); i++){
+                    aux2.dados[0+i] = aux.dados[(limBloco/2)+i]; // Move o dado de aux para aux2
+                    aux.dados[(limBloco/2)+i] = {}; // Limpa o dado em aux
+                }
+                // Atualiza os devidos cabeçalhos
+                aux2.idBloco = cabSS.posProximo;
+                aux2.cabBloco.quantidade = limBloco/2;
+                aux2.cabBloco.proximo = aux.cabBloco.proximo;
+                cabSS.num += 1;
+                cabSS.posProximo = cabSS.num;
+                aux.cabBloco.quantidade = limBloco/2;
+                aux.cabBloco.proximo = cabSS.posProximo;
+                // Confere qual dos dois blocos inserir o valor _p
+                if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){
+                    aux.dados[limBloco/2] = _p;
                     aux.cabBloco.quantidade += 1;
                     selectionSort(aux.dados, aux.cabBloco.quantidade);
-                    arq.seekp(PosAbs); // Posição Absoluta do Ultimo Bloco
-                    arq.write((char*) &aux, sizeof(Bloco));
+                } else { // Insere no pacote criado
+                    aux2.dados[limBloco/2] = _p;
+                    aux2.cabBloco.quantidade += 1;
+                    selectionSort(aux2.dados, aux2.cabBloco.quantidade);
                 }
-            } else { // Inserir no bloco encontrado
-                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
-                    
-                } else { // Do contrário, inserir o dado
-                    aux.dados[aux.cabBloco.quantidade] = _p;
-                    aux.cabBloco.quantidade += 1;
-                    selectionSort(aux.dados, aux.cabBloco.quantidade);
-                    arq.seekp((sizeof(Bloco)*aux.idBloco)+sizeof(Cabecalho));
-                    arq.write((char*) &aux, sizeof(Bloco));
-                }
+                // Inserir na memória o Cabeçalho , Bloco aux e Bloco aux2
+                arq.seekp(0);
+                arq.write((char*) &cabSS, sizeof(Cabecalho));
+
+                arq.seekp((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho));
+                arq.write((char*) &aux, sizeof(Bloco));
+
+                arq.seekp((sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho));
+                arq.write((char*) &aux2, sizeof(Bloco));
+                
+            } else { // Do contrário, apenas inserir o dado no bloco
+                aux.dados[aux.cabBloco.quantidade] = _p;
+                aux.cabBloco.quantidade += 1;
+                selectionSort(aux.dados, aux.cabBloco.quantidade);
+                arq.seekp((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho)); // Posição Absoluta do Bloco aux
+                arq.write((char*) &aux, sizeof(Bloco));
             }
         }
         arq.close();
