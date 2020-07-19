@@ -50,8 +50,13 @@ Bloco SeqSet::BuscarBloco(pacote& _p) {
                         return aux;
                     }
                 }
+                // O if abaixo garante que o Bloco final seja enviado sem que o idBloco seja editado para -1
+                // evitando escrever na memoria o valor idBloco do ultimo bloco como -1
+                if(aux.cabBloco.proximo == -1 && achou == false)
+                    return aux;
             }
-            aux.idBloco = -1; //manda um bloco inválido
+            
+            aux.idBloco = -1; // manda um bloco inválido
             return aux;
         }
     }
@@ -80,21 +85,23 @@ void SeqSet::Inserir(pacote& _p) {
         } else {
             unsigned PosAbs;
             aux = BuscarBloco(_p);
-            if(aux.idBloco == -1){ // Inserir no ultimo bloco
+            if(aux.cabBloco.proximo == -1){ // Inserir no ultimo bloco
                 PosAbs = (sizeof(Bloco)*(cabSS.num - 1)) + sizeof(Cabecalho); // Posição Absoluta do ultimo bloco
                 arq.seekg(PosAbs); // arruma o ponteiro de leitura
                 arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
                 if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
-                    for(int i = 0; i < limBloco; i++){ // [INCOMPLETO: Falta a remoção dos dados no bloco original]
-                        aux2.dados[0+i] = aux.dados[(limBloco/2)+i];
+                    for(int i = 0; i < limBloco; i++){
+                        aux2.dados[0+i] = aux.dados[(limBloco/2)+i]; // Move o dado de aux para aux2
+                        aux.dados[(limBloco/2)+i] = {}; // Limpa o dado em aux
                     }
+                    // Atualiza os devidos cabeçalhos
                     aux.cabBloco.quantidade = limBloco/2;
                     aux.cabBloco.proximo = cabSS.posProximo;
                     aux2.idBloco = cabSS.posProximo;
                     aux2.cabBloco.quantidade = limBloco/2;
                     aux2.cabBloco.proximo = -1;
-                    cabSS.posProximo += 1;
                     cabSS.num += 1;
+                    cabSS.posProximo += cabSS.num;
                     // Confere qual dos dois blocos inserir o valor _p
                     if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){ // Insere no pacote original
                         aux.dados[limBloco/2] = _p;
@@ -122,7 +129,7 @@ void SeqSet::Inserir(pacote& _p) {
                 }
             } else { // Inserir no bloco encontrado
                 if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
-                    // [REQUER DUPLAMENTE ENCADEADO(?)]
+                    
                 } else { // Do contrário, inserir o dado
                     aux.dados[aux.cabBloco.quantidade] = _p;
                     aux.cabBloco.quantidade += 1;
