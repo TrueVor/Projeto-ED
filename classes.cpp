@@ -32,8 +32,10 @@ Bloco SeqSet::BuscarBloco(pacote& _p) {
                 return aux; 
             }
             else {
+                unsigned PosAbs;
                 while ((achou == (false)) and (aux.cabBloco.proximo != -1)) {
-                    arq.seekg(sizeof(Bloco)*aux.cabBloco.proximo); //arruma o ponteiro de leitura
+                    PosAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho)
+                    arq.seekg(PosAbs); //arruma o ponteiro de leitura
                     arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
                     tam = aux.cabBloco.quantidade -1;
                     if (_p.tamanho < aux.dados[tam].tamanho) {
@@ -65,12 +67,19 @@ void SeqSet::Inserir(pacote& _p) {
             aux.cabBloco.proximo = -1;
             arq.write((char*) &aux, sizeof(Bloco));
         } else { // [INCOMPLETO]
+            unsigned PosAbs;
             aux = BuscarBloco(_p);
             if(aux.idBloco == -1){ // Inserir no ultimo bloco
-                if(){ // Se o bloco estiver cheio, dividir
+                PosAbs = (sizeof(Bloco)*(cabSS.num - 1)) + sizeof(Cabecalho); // Posição Absoluta do ultimo bloco
+                arq.seekg(PosAbs); // arruma o ponteiro de leitura
+                arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
+                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir [INCOMPLETO]
 
                 } else { // Do contrário, inserir o dado
-
+                    aux.dados[aux.cabBloco.quantidade] = _p;
+                    aux.cabBloco.quantidade += 1;
+                    arq.seekp(PosAbs);
+                    arq.write((char*) &aux, sizeof(Bloco));
                 }
             } else { // Inserir no bloco encontrado
                 if(){ // Se o bloco estiver cheio, dividir
