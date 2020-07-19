@@ -10,7 +10,7 @@ using namespace std;
 // para saber o tamanho de cada campo, fiz um primeiro teste para
 // pegar o tamanho máximo de cada campo do tipo texto
 // adicionei mais uma posição para armazenar o término de string '\0'
-struct pacote {
+/*struct pacote {
     unsigned indice; 
     float tempo;
     char origem[40];
@@ -18,7 +18,7 @@ struct pacote {
     char protocolo[18];
     unsigned tamanho;
     char infomarcao[1650];
-};
+};*/
 
 int main(){
     SeqSet Seq;

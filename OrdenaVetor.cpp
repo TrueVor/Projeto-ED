@@ -1,16 +1,8 @@
 #include <iostream>
+#include "classes.h"
+#include "OrdenaVetor.h"
+
 using namespace std;
-
-struct pacote { 
-    unsigned indice; 
-    float tempo; 
-    char origem[40]; 
-    char destino[40]; 
-    char protocolo[18];
-    unsigned tamanho; 
-    char infomarcao[1650];
-};
-
 
 
 void swap(pacote& A, pacote& B) {
@@ -61,24 +53,25 @@ void selectionSort(pacote arr[], int n){
     int i, j, min_idx;  
   
      
-    for (i = 0; i < n-1; i++){  
-		//acha o menor 
-        min_idx = i;  
-        for (j = i+1; j < n; j++)  
-        if (arr[j].tamanho < arr[min_idx].tamanho)  
-            min_idx = j;  
+    for (i = 0; i < n-1; i++){
+		//acha o menor
+        min_idx = i;
+        for (j = i+1; j < n; j++)
+        	if (arr[j].tamanho < arr[min_idx].tamanho)  
+           		min_idx = j;  
   
         //troca o menor de pos
         swap(arr[min_idx], arr[i]);  
     }  
-} 
+}
 
 void Imprimir (pacote A[], int tam) { //imprime só o tempo e tamanho para teste
 	for (int i=0;i<tam;i++) {
 		cout << A[i].indice << " "<< A[i].tamanho << endl;
 	}
 }
-		 
+
+/*
 int main() { //TESTE
 	pacote p1[5];
 	string aux; //para digitar os vetores de char
@@ -102,8 +95,4 @@ int main() { //TESTE
 	}
 	selectionSort(p1,5);
 	Imprimir(p1,5);
-}
-	
-	
-     
-	
+}*/

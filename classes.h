@@ -3,6 +3,7 @@
 
 using namespace std;
 
+// Pacote de dados
 struct pacote  {
     unsigned indice; 
     float tempo;
@@ -30,9 +31,9 @@ struct InfoBloco {
 class Bloco { 
     friend class SeqSet;
     private:
-    int idBloco;
-    InfoBloco cabBloco; 
-    pacote dados[80];
+    int idBloco; // Posição Relativa do Bloco
+    InfoBloco cabBloco; // Cabeçalho do Bloco
+    pacote dados[80]; // Pacote de dados de tamanho máximo de 80 e mínimo de 40
     public:
     Bloco();
 

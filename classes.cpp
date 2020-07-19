@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "classes.h"
+#include "OrdenaVetor.h"
 
 
 using namespace std;
@@ -98,9 +99,11 @@ void SeqSet::Inserir(pacote& _p) {
                     if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){ // Insere no pacote original
                         aux.dados[limBloco/2] = _p;
                         aux.cabBloco.quantidade += 1;
+                        selectionSort(aux.dados, aux.cabBloco.quantidade);
                     } else { // Insere no pacote criado
                         aux2.dados[limBloco/2] = _p;
                         aux2.cabBloco.quantidade += 1;
+                        selectionSort(aux2.dados, aux2.cabBloco.quantidade);
                     }
                     arq.seekp(0); // Corrige o ponteiro para armazenamento do Cabeçalho
                     arq.write((char*) &cabSS, sizeof(Cabecalho));
@@ -110,18 +113,22 @@ void SeqSet::Inserir(pacote& _p) {
                     PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
                     arq.seekp(PosAbs); // Correção do ponteiro para a posição do Bloco Aux2
                     arq.write((char*) &aux2, sizeof(Bloco));
-
-                } else { // Do contrário, inserir o dado
+                } else { // Do contrário, apenas inserir o dado no ultimo bloco
                     aux.dados[aux.cabBloco.quantidade] = _p;
                     aux.cabBloco.quantidade += 1;
-                    arq.seekp(PosAbs);
+                    selectionSort(aux.dados, aux.cabBloco.quantidade);
+                    arq.seekp(PosAbs); // Posição Absoluta do Ultimo Bloco
                     arq.write((char*) &aux, sizeof(Bloco));
                 }
             } else { // Inserir no bloco encontrado
-                if(){ // Se o bloco estiver cheio, dividir
-
+                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
+                    // [REQUER DUPLAMENTE ENCADEADO(?)]
                 } else { // Do contrário, inserir o dado
-
+                    aux.dados[aux.cabBloco.quantidade] = _p;
+                    aux.cabBloco.quantidade += 1;
+                    selectionSort(aux.dados, aux.cabBloco.quantidade);
+                    arq.seekp((sizeof(Bloco)*aux.idBloco)+sizeof(Cabecalho));
+                    arq.write((char*) &aux, sizeof(Bloco));
                 }
             }
         }
