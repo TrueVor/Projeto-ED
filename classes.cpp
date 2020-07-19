@@ -5,6 +5,12 @@
 
 using namespace std;
 
+Bloco::Bloco() {
+    cabBloco.proximo = -1;
+    cabBloco.quantidade = 0;
+    idBloco = 0;
+}
+
 SeqSet::SeqSet() {
     ofstream arq("trab.dat");  //cria o arquivo
     //inicializando o cabeçalho
@@ -33,8 +39,8 @@ Bloco SeqSet::BuscarBloco(pacote& _p) {
             }
             else {
                 unsigned PosAbs;
-                while ((achou == (false)) and (aux.cabBloco.proximo != -1)) {
-                    PosAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho)
+                while ((achou == (false)) && (aux.cabBloco.proximo != -1)) {
+                    PosAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho);
                     arq.seekg(PosAbs); //arruma o ponteiro de leitura
                     arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
                     tam = aux.cabBloco.quantidade -1;
@@ -53,6 +59,7 @@ Bloco SeqSet::BuscarBloco(pacote& _p) {
 
 void SeqSet::Inserir(pacote& _p) {
     Bloco aux;
+    Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
     int limBloco = 80; // Limite de qntdade de dados para cada bloco
     fstream arq;
     if (arq) {
@@ -61,19 +68,48 @@ void SeqSet::Inserir(pacote& _p) {
             cabSS.num = 1;
             cabSS.posPrimeiro = 0;
             cabSS.posProximo = 1;
+            arq.seekp(0);
+            arq.write((char*) &cabSS, sizeof(Cabecalho));
             //inserindo primeiro dado e modificando cabeçalho do bloco
             aux.dados[0] = _p;
             aux.cabBloco.quantidade = 1;
             aux.cabBloco.proximo = -1;
+            arq.seekp(sizeof(Cabecalho)); // Corrige o ponteiro para a posição relativa 0
             arq.write((char*) &aux, sizeof(Bloco));
-        } else { // [INCOMPLETO]
+        } else {
             unsigned PosAbs;
             aux = BuscarBloco(_p);
             if(aux.idBloco == -1){ // Inserir no ultimo bloco
                 PosAbs = (sizeof(Bloco)*(cabSS.num - 1)) + sizeof(Cabecalho); // Posição Absoluta do ultimo bloco
                 arq.seekg(PosAbs); // arruma o ponteiro de leitura
                 arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
-                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir [INCOMPLETO]
+                if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
+                    for(int i = 0; i < limBloco; i++){ // [INCOMPLETO: Falta a remoção dos dados no bloco original]
+                        aux2.dados[0+i] = aux.dados[(limBloco/2)+i];
+                    }
+                    aux.cabBloco.quantidade = limBloco/2;
+                    aux.cabBloco.proximo = cabSS.posProximo;
+                    aux2.idBloco = cabSS.posProximo;
+                    aux2.cabBloco.quantidade = limBloco/2;
+                    aux2.cabBloco.proximo = -1;
+                    cabSS.posProximo += 1;
+                    cabSS.num += 1;
+                    // Confere qual dos dois blocos inserir o valor _p
+                    if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){ // Insere no pacote original
+                        aux.dados[limBloco/2] = _p;
+                        aux.cabBloco.quantidade += 1;
+                    } else { // Insere no pacote criado
+                        aux2.dados[limBloco/2] = _p;
+                        aux2.cabBloco.quantidade += 1;
+                    }
+                    arq.seekp(0); // Corrige o ponteiro para armazenamento do Cabeçalho
+                    arq.write((char*) &cabSS, sizeof(Cabecalho));
+                    PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
+                    arq.seekp(PosAbs); // Correção do ponteiro para a posição do Bloco Aux
+                    arq.write((char*) &aux, sizeof(Bloco));
+                    PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
+                    arq.seekp(PosAbs); // Correção do ponteiro para a posição do Bloco Aux2
+                    arq.write((char*) &aux2, sizeof(Bloco));
 
                 } else { // Do contrário, inserir o dado
                     aux.dados[aux.cabBloco.quantidade] = _p;
