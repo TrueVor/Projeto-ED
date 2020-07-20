@@ -79,7 +79,7 @@ SeqSet::SeqSet() {
 Bloco SeqSet::BuscarBloco(pacote& _p) {
     Bloco aux;
     bool achou = false;
-    ifstream arq;
+    ifstream arq(NOMEARQUIVO);
     if (arq) {
         arq.read((char*) &cabSS, sizeof(Cabecalho));
         if (cabSS.num == 0) {
@@ -159,8 +159,8 @@ void swap(pacote& A, pacote& B) {
 	}
 }
 
-void selectionSort(pacote arr[], int n){  
-    int i, j, min_idx;  
+void selectionSort(pacote arr[], unsigned n){  
+    unsigned i, j, min_idx;  
   
      
     for (i = 0; i < n-1; i++){
@@ -187,6 +187,8 @@ void SeqSet::Inserir(pacote& _p) {
             cabSS.num = 1;
             cabSS.posPrimeiro = 0;
             cabSS.posProximo = 1;
+            PosAbs = 0;
+            arq.seekp(PosAbs);
             arq.write((char*) &cabSS, sizeof(Cabecalho));
             //inserindo primeiro dado e modificando cabeçalho do bloco
             aux.dados[0] = _p;
@@ -199,8 +201,6 @@ void SeqSet::Inserir(pacote& _p) {
         } else {
             aux = BuscarBloco(_p);
 
-            arq.seekg((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho)); // arruma o ponteiro de leitura
-            arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
             if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
                 for(unsigned i = 0; i < (limBloco/2); i++){
                     aux2.dados[0+i] = aux.dados[(limBloco/2)+i]; // Move o dado de aux para aux2
@@ -225,20 +225,25 @@ void SeqSet::Inserir(pacote& _p) {
                     selectionSort(aux2.dados, aux2.cabBloco.quantidade);
                 }
                 // Inserir na memória o Cabeçalho , Bloco aux e Bloco aux2
-                arq.seekp(0);
+                PosAbs = 0;
+                arq.seekp(PosAbs);
                 arq.write((char*) &cabSS, sizeof(Cabecalho));
 
-                arq.seekp((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho));
+                PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
+                arq.seekp(PosAbs);
                 arq.write((char*) &aux, sizeof(Bloco));
 
-                arq.seekp((sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho));
+                PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
+                arq.seekp(PosAbs);
                 arq.write((char*) &aux2, sizeof(Bloco));
                 
             } else { // Do contrário, apenas inserir o dado no bloco
                 aux.dados[aux.cabBloco.quantidade] = _p;
-                aux.cabBloco.quantidade += 1;
-                selectionSort(aux.dados, aux.cabBloco.quantidade);
-                arq.seekp((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho)); // Posição Absoluta do Bloco aux
+                
+                aux.cabBloco.quantidade++;
+                //selectionSort(aux.dados, aux.cabBloco.quantidade);
+                PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
+                arq.seekp(PosAbs); // Posição Absoluta do Bloco aux
                 arq.write((char*) &aux, sizeof(Bloco));
             }
         }
@@ -336,7 +341,8 @@ void SeqSet::ImprimirSS() {
         cout << info << endl;
     }
     for (int i = 1; i < cabSS.num; i++) {
-        arq.seekg(percorre.cabBloco.proximo*sizeof(Bloco)+sizeof(Cabecalho));
+        PosAbs = percorre.cabBloco.proximo*sizeof(Bloco)+sizeof(Cabecalho);
+        arq.seekg(PosAbs);
         arq.read((char*) &percorre, sizeof(Bloco));
         cout << "BLOCO " << percorre.idBloco << ":" << endl;
 
@@ -385,6 +391,12 @@ int main(){
     cin >> dado.tamanho;
     cin >> dado.infomarcao;
     Seq.Inserir(dado);
+
+    for(unsigned i = 0; i < 3; i++){
+        cin >> dado.indice;
+        cin >> dado.tamanho;
+        Seq.Inserir(dado);
+    }
 
     Seq.ImprimirSS();
     return 0;
