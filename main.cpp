@@ -312,7 +312,8 @@ void SeqSet::ImprimirSS() {
     cout << "Numero de Blocos: " << cabSS.num << "   Pos do primeiro: " 
     << cabSS.posPrimeiro << "   Pos do proximo disponível: " <<  cabSS.posProximo << endl;
     //lendo o primeiro bloco
-    arq.seekg(cabSS.posPrimeiro*sizeof(Bloco)); 
+    arq.seekg(cabSS.posPrimeiro*sizeof(Bloco)+sizeof(Cabecalho)); 
+    arq.read((char*) &percorre,sizeof(Bloco));
     //imprimindo os dados 
     cout << "BLOCO " << percorre.idBloco << ":" << endl;
     for (unsigned i = 0; i < percorre.cabBloco.quantidade; i++) {
