@@ -424,7 +424,7 @@ int main(){
 
     pacote umPacote;
     cout << "Lendo o arquivo csv..." << endl;
-    while(getline(arquivo_csv,linha)) {
+    while(getline(arquivo_csv,linha) && umPacote.indice <  2162875) {
         campo = linha.erase(0,1); // remove primeiro caracter da linha (")
 
         // obtendo primeiro campo, um inteiro - No.
