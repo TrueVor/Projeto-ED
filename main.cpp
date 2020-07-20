@@ -50,14 +50,13 @@ class SeqSet {
     Bloco* auxiliar;
     public:
     SeqSet();
-    Bloco BuscarBloco(pacote& _p); 
+	
+    int BuscarBloco(pacote& _p); //retorna o id do bloco encontrado 
     void Inserir(pacote& _p);  
     bool BuscarPacote(pacote& _p);
     void AlterarPacote(pacote& _p);
 
     void ImprimirSS();
-   
-   
 };
 
 Bloco::Bloco() {
@@ -76,43 +75,41 @@ SeqSet::SeqSet() {
     arq.close();
 }
 
-Bloco SeqSet::BuscarBloco(pacote& _p) {
+int SeqSet::BuscarBloco(pacote& _p) {
     Bloco aux;
-    bool achou = false;
     ifstream arq(NOMEARQUIVO);
+    int tam; //armazena pos do ultimo elemento de um bloco
     if (arq) {
-        arq.read((char*) &cabSS, sizeof(Cabecalho));
-        if (cabSS.num == 0) {
-             throw runtime_error("Erro na busca: arquivo vazio!");
-        }
-        //nesse ponto o ponteiro de leitura já vai estar no final do cabeçalho 
-        else {
-            arq.read((char*) &aux, sizeof(Bloco)); //lê o primeiro Bloco
-            unsigned tam = aux.cabBloco.quantidade -1; //pos do ultimo elemento valido do vetor
-            if (_p.tamanho < aux.dados[tam].tamanho) { //se o elemento pertencer ao primeiro bloco
-                return aux; 
-            }
-            else {
-                unsigned PosAbs;
-                while ((achou == (false)) && (aux.cabBloco.proximo != -1)) {
-                    PosAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho);
-                    arq.seekg(PosAbs); //arruma o ponteiro de leitura
-                    arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
-                    tam = aux.cabBloco.quantidade -1;
-                    if (_p.tamanho < aux.dados[tam].tamanho) {
-                        achou = true;
-                        return aux;
+        arq.read((char*) &cabSS, sizeof(Cabecalho)); //lê o cabeçalho
+        if (cabSS.num > 0) {
+            arq.read((char*) &aux, sizeof(Bloco)); //lê o primeiro bloco
+            while (aux.cabBloco.proximo != -1) { 
+                tam = (aux.cabBloco.quantidade) - 1;
+                if (_p.tamanho < aux.dados[tam].tamanho) { //achou o bloco
+                    arq.close();
+                    return aux.idBloco;
+                }
+                else if (_p.tamanho > aux.dados[tam].tamanho) { //compara chave primária com ultimo elemento do bloco
+                    int posAbs = (sizeof(Cabecalho)+(sizeof(Bloco) * aux.cabBloco.proximo));
+                    arq.seekg(posAbs);
+                    arq.read((char*) &aux, sizeof(Bloco)); //lê o proximo bloco
+                }
+                else if (_p.tamanho == aux.dados[tam].tamanho) { //caso seja igual, fazer comparações com a chave secundária
+                    if (_p.indice < aux.dados[tam].indice) {
+                        arq.close();
+                        return aux.idBloco;
+                    }
+                    else {
+                        int posAbs = (sizeof(Cabecalho)+(sizeof(Bloco) * aux.cabBloco.proximo));
+                        arq.seekg(posAbs);
+                        arq.read((char*) &aux, sizeof(Bloco));
                     }
                 }
-                // O if abaixo garante que o Bloco final seja enviado sem que o idBloco seja editado para -1
-                // evitando escrever na memoria o valor idBloco do ultimo bloco como -1
-                if(aux.cabBloco.proximo == -1 && achou == false)
-                    return aux;
             }
         }
     }
-    aux.idBloco = -1; // manda um bloco inválido
-    return aux;
+    arq.close();
+    return aux.idBloco; //retorna o id do ultimo bloco, caso nenhum outro seja encontrado
 }
 
 void swap(pacote& A, pacote& B) {
@@ -254,25 +251,40 @@ void SeqSet::Inserir(pacote& _p) {
 
 bool SeqSet::BuscarPacote(pacote& _p) {
     Bloco aux;
-    aux = BuscarBloco (_p);
-    if (aux.idBloco == -1) {
-        return false;
-    }
-    else {
-        int tam = aux.cabBloco.quantidade;
-        for (int i = 0; i < tam -1; i++) {
-            if (aux.dados[i].indice == _p.indice && aux.dados[i].tamanho == _p.tamanho) {
-                return true;
-            }
-        }
+    int posBloco = BuscarBloco(_p);
+    ifstream arq(NOMEARQUIVO);
+    //lendo dados do arquivo
+    arq.read((char*) &cabSS, sizeof(Cabecalho));
+    int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * posBloco));
+    arq.seekg(posAbs);
+    arq.read((char*) &aux, sizeof(Bloco));
+    arq.close();
+    //busca sequencial no vetor
+    int tam = aux.cabBloco.quantidade - 1;
+    for (int i = 0; i < tam; i++) {
+        if ((aux.dados[i].tamanho == _p.tamanho) && (aux.dados[i].indice == _p.indice))
+            return true;
     }
     return false;
 }
 
 
 void SeqSet::AlterarPacote(pacote& _p) {
-    if (BuscarPacote(_p)) {
-        Bloco aux = BuscarBloco(_p); //traz pra memória o bloco em que o dado está armazenado 
+    if (!BuscarPacote(_p)) {
+        cerr << "Pacote não encontrado!";
+    }
+    else {
+        Bloco aux;
+        int pos = BuscarBloco(_p);
+        ifstream arq(NOMEARQUIVO);
+        
+        //lendo dados do arquivo
+        arq.read((char*) &cabSS, sizeof(Cabecalho));
+        int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * pos));
+        arq.seekg(posAbs);
+        arq.read((char*) &aux, sizeof(Bloco));
+        arq.close();
+        
         float tempo;
         string altera;
         bool achou = false;
@@ -299,12 +311,12 @@ void SeqSet::AlterarPacote(pacote& _p) {
                 achou = true;
             }
         }
-        ofstream arq; //abre o arquivo para escrita
+        ofstream arqOUT(NOMEARQUIVO); //abre o arquivo para escrita
         if(arq) {
-            unsigned posAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho);
-            arq.seekp(posAbs);
-            arq.write((char*) &aux, sizeof(Bloco)); //escreve o bloco altrado no arquivo
-            arq.close();
+            posAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
+            arqOUT.seekp(posAbs);
+            arqOUT.write((char*) &aux, sizeof(Bloco)); //escreve o bloco alterado no arquivo
+            arqOUT.close();
             cout << "Alteração feita com sucesso!" << endl;
         }
         else {
@@ -312,6 +324,7 @@ void SeqSet::AlterarPacote(pacote& _p) {
         }
     }
 }
+
  
 void SeqSet::ImprimirSS() {
     ifstream arq(NOMEARQUIVO);
