@@ -77,7 +77,7 @@ SeqSet::SeqSet() {
 
 int SeqSet::BuscarBloco(pacote& _p) {
     Bloco aux;
-    ifstream arq(NOMEARQUIVO);
+    ifstream arq(NOMEARQUIVO, ios::binary);
     int tam; //armazena pos do ultimo elemento de um bloco
     if (arq) {
         arq.read((char*) &cabSS, sizeof(Cabecalho)); //lê o cabeçalho
@@ -193,11 +193,11 @@ void SeqSet::Inserir(pacote& _p) {
             aux.cabBloco.quantidade = 1;
             aux.cabBloco.proximo = -1;
             PosAbs = sizeof(Cabecalho);
-            cout << PosAbs << endl;
 
             arq.seekp(PosAbs);
             arq.write((char *) &aux, sizeof(Bloco));
         } else {
+            
             int pos = BuscarBloco(_p);
 
             PosAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
@@ -213,12 +213,14 @@ void SeqSet::Inserir(pacote& _p) {
                 aux2.idBloco = cabSS.posProximo;
                 aux2.cabBloco.quantidade = limBloco/2;
                 aux2.cabBloco.proximo = aux.cabBloco.proximo;
-                cabSS.num += 1;
-                cabSS.posProximo = cabSS.num;
+                
                 aux.cabBloco.quantidade = limBloco/2;
                 aux.cabBloco.proximo = cabSS.posProximo;
+
+                cabSS.num += 1;
+                cabSS.posProximo = cabSS.num;
                 // Confere qual dos dois blocos inserir o valor _p
-                if(_p.tamanho <= aux.dados[(limBloco/2)-1].tamanho){
+                if(_p.tamanho < aux.dados[(limBloco/2)-1].tamanho){
                     aux.dados[limBloco/2] = _p;
                     aux.cabBloco.quantidade += 1;
                     selectionSort(aux.dados, aux.cabBloco.quantidade);
@@ -245,7 +247,7 @@ void SeqSet::Inserir(pacote& _p) {
                 aux.dados[aux.cabBloco.quantidade] = _p;
                 
                 aux.cabBloco.quantidade += 1;
-                //selectionSort(aux.dados, aux.cabBloco.quantidade);
+                selectionSort(aux.dados, aux.cabBloco.quantidade);
                 PosAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
                 arq.clear();
                 arq.seekp(PosAbs); // Posição Absoluta do Bloco aux
@@ -260,7 +262,7 @@ void SeqSet::Inserir(pacote& _p) {
 bool SeqSet::BuscarPacote(pacote& _p) {
     Bloco aux;
     int posBloco = BuscarBloco(_p);
-    ifstream arq(NOMEARQUIVO);
+    ifstream arq(NOMEARQUIVO, ios::binary);
     //lendo dados do arquivo
     arq.read((char*) &cabSS, sizeof(Cabecalho));
     int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * posBloco));
@@ -335,7 +337,7 @@ void SeqSet::AlterarPacote(pacote& _p) {
 
  
 void SeqSet::ImprimirSS() {
-    ifstream arq(NOMEARQUIVO);
+    ifstream arq(NOMEARQUIVO, ios::binary);
     Bloco percorre;
     string source, dest, info, prot; //para imprimir os vetores de char
     unsigned long long PosAbs;
@@ -367,7 +369,7 @@ void SeqSet::ImprimirSS() {
         arq.read((char*) &percorre, sizeof(Bloco));
         cout << "BLOCO " << percorre.idBloco << ":" << endl;
 
-        for (unsigned i = 0; i < percorre.cabBloco.quantidade; i++) {
+        for (unsigned i = 1; i < percorre.cabBloco.quantidade; i++) {
             cout << percorre.dados[i].indice << " ";
             cout << percorre.dados[i].tempo << " ";
             source = percorre.dados[i].origem;
@@ -400,28 +402,6 @@ void SeqSet::ImprimirSS() {
 };*/
 
 int main(){
-    // APENAS TESTE
-    SeqSet Seq;
-    pacote dado;
-
-    cin >> dado.indice;
-    cin >> dado.tempo;
-    cin >> dado.origem;
-    cin >> dado.destino;
-    cin >> dado.protocolo;
-    cin >> dado.tamanho;
-    cin >> dado.infomarcao;
-    Seq.Inserir(dado);
-
-    for(unsigned i = 0; i < 3; i++){
-        cin >> dado.indice;
-        cin >> dado.tamanho;
-        Seq.Inserir(dado);
-    }
-
-    Seq.ImprimirSS();
-    return 0;
-    
 
     std::ifstream arquivo_csv("captura_pacotes.csv");
     if (!arquivo_csv) {
@@ -436,14 +416,15 @@ int main(){
         }
     }
 
-
+    SeqSet Set;
+    int cont = 0;
     string campo; // variável para obter um campo de cada linha lida
     string delimitador = "\",\""; // delimitador entre os campos
     unsigned posFimCampo; // posição final do campo
 
     pacote umPacote;
-
-    while(getline(arquivo_csv,linha) && umPacote.indice <  2162875) {
+    cout << "Lendo o arquivo csv..." << endl;
+    while(getline(arquivo_csv,linha)) {
         campo = linha.erase(0,1); // remove primeiro caracter da linha (")
 
         // obtendo primeiro campo, um inteiro - No.
@@ -451,6 +432,7 @@ int main(){
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         umPacote.indice = stoul(campo);
+        //cout << umPacote.indice << endl;
 
         // obtendo segundo campo, um float - Time
         posFimCampo = linha.find(delimitador);
@@ -488,7 +470,11 @@ int main(){
         campo = linha.substr(0, posFimCampo);
         strcpy(umPacote.infomarcao, campo.c_str());
 
-
+        Set.Inserir(umPacote);
+        cout << cont << endl;
+        cont++;
+        if(cont == 40 || cont == 81)
+            Set.ImprimirSS();
         
     }
 
