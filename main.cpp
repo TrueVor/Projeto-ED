@@ -421,10 +421,15 @@ int main(){
     string campo; // variável para obter um campo de cada linha lida
     string delimitador = "\",\""; // delimitador entre os campos
     unsigned posFimCampo; // posição final do campo
+    char opt; // opção para manipulação do arquivo
+
 
     pacote umPacote;
     cout << "Lendo o arquivo csv..." << endl;
-    while(getline(arquivo_csv,linha) && umPacote.indice <  2162875) {
+    do {
+        if(!getline(arquivo_csv,linha)){
+            return EXIT_FAILURE;
+        }
         campo = linha.erase(0,1); // remove primeiro caracter da linha (")
 
         // obtendo primeiro campo, um inteiro - No.
@@ -471,12 +476,36 @@ int main(){
         strcpy(umPacote.infomarcao, campo.c_str());
 
         Set.Inserir(umPacote);
-        cout << cont << endl;
-        cont++;
-        if(cont == 40 || cont == 81)
-            Set.ImprimirSS();
         
-    }
+    } while (umPacote.indice <  2162875);
+
+    cin >> opt;
+
+    do {
+        switch (opt) {
+            case 'a': // Alterar dados específicos 
+
+                break;
+
+            case 'i': // Inserção de dados
+                
+                break;
+
+            case 'p': // Imprimir
+                
+                break;
+
+            case 'c': // encerra
+                break;
+            
+            default:
+                cout << "Caractere inválido" << endl;
+                break;
+        }
+
+        cin >> opt;
+
+    } while (opt != 'c');
 
     return 0;
 }
