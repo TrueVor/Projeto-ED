@@ -48,10 +48,14 @@ class SeqSet {
     Bloco* auxiliar;
     public:
     SeqSet();
-    void Inserir(pacote& _p);  
     Bloco BuscarBloco(pacote& _p); 
+    void Inserir(pacote& _p);  
+    bool BuscarPacote(pacote& _p);
+    void AlterarPacote(pacote& _p);
+
     void ImprimirSS();
-    void EscreverNoArquivo(Bloco& _b);
+   
+   
 };
 
 Bloco::Bloco() {
@@ -103,11 +107,10 @@ Bloco SeqSet::BuscarBloco(pacote& _p) {
                 if(aux.cabBloco.proximo == -1 && achou == false)
                     return aux;
             }
-            
-            aux.idBloco = -1; // manda um bloco inválido
-            return aux;
         }
     }
+    aux.idBloco = -1; // manda um bloco inválido
+    return aux;
 }
 
 void swap(pacote& A, pacote& B) {
@@ -173,7 +176,7 @@ void selectionSort(pacote arr[], int n){
 void SeqSet::Inserir(pacote& _p) {
     Bloco aux;
     Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
-    int limBloco = 80; // Limite de qntdade de dados para cada bloco
+    unsigned limBloco = 80; // Limite de qntdade de dados para cada bloco
     fstream arq;
     if (arq) {
         arq.read((char*) &cabSS, sizeof(Cabecalho)); //lê o cabeçalho
@@ -195,7 +198,7 @@ void SeqSet::Inserir(pacote& _p) {
             arq.seekg((sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho)); // arruma o ponteiro de leitura
             arq.read((char*) &aux, sizeof(Bloco)); //passa o bloco do arquivo pra memória
             if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
-                for(int i = 0; i < (limBloco/2); i++){
+                for(unsigned i = 0; i < (limBloco/2); i++){
                     aux2.dados[0+i] = aux.dados[(limBloco/2)+i]; // Move o dado de aux para aux2
                     aux.dados[(limBloco/2)+i] = {}; // Limpa o dado em aux
                 }
@@ -237,6 +240,67 @@ void SeqSet::Inserir(pacote& _p) {
         }
         arq.close();
         
+    }
+}
+
+bool SeqSet::BuscarPacote(pacote& _p) {
+    Bloco aux;
+    aux = BuscarBloco (_p);
+    if (aux.idBloco == -1) {
+        return false;
+    }
+    else {
+        int tam = aux.cabBloco.quantidade;
+        for (int i = 0; i < tam -1; i++) {
+            if (aux.dados[i].indice == _p.indice && aux.dados[i].tamanho == _p.tamanho) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+void SeqSet::AlterarPacote(pacote& _p) {
+    if (BuscarPacote(_p)) {
+        Bloco aux = BuscarBloco(_p); //traz pra memória o bloco em que o dado está armazenado 
+        float tempo;
+        string altera;
+        bool achou = false;
+        int tam = aux.cabBloco.quantidade-1;
+
+        for (int i = 0; i < tam && achou == false; i++ ) {
+            if (_p.tamanho == aux.dados[i].tamanho && _p.indice == aux.dados[i].indice) {
+                cout << "Digite os dados para alteração:" << endl;
+                cout << "tempo: ";
+                cin >> tempo;
+                aux.dados[i].tempo = tempo;
+                cout << "origem: ";
+                cin >> altera;
+                strcpy(aux.dados[i].origem, altera.c_str()); //copia a string como um vetor de char
+                cout << "destino: ";
+                cin >> altera;
+                strcpy(aux.dados[i].destino, altera.c_str());
+                cout << "protocolo: ";
+                cin >> altera;
+                strcpy(aux.dados[i].protocolo, altera.c_str());
+                cout << "info: ";
+                cin >> altera;
+                strcpy(aux.dados[i].infomarcao, altera.c_str());
+                achou = true;
+            }
+        }
+        ofstream arq; //abre o arquivo para escrita
+        if(arq) {
+            unsigned posAbs = (sizeof(Bloco)*aux.cabBloco.proximo) + sizeof(Cabecalho);
+            arq.seekp(posAbs);
+            arq.write((char*) &aux, sizeof(Bloco)); //escreve o bloco altrado no arquivo
+            arq.close();
+            cout << "Alteração feita com sucesso!" << endl;
+        }
+        else {
+            cout << "Erro na alteração!" << endl;
+        }
     }
 }
  
