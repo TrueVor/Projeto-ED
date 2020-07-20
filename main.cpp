@@ -6,6 +6,8 @@
 
 using namespace std;
 
+const char NOMEARQUIVO[20] = "trab.dat";
+
 // Pacote de dados
 struct pacote  {
     unsigned indice; 
@@ -65,7 +67,7 @@ Bloco::Bloco() {
 }
 
 SeqSet::SeqSet() {
-    ofstream arq("trab.dat");  //cria o arquivo
+    ofstream arq(NOMEARQUIVO);  //cria o arquivo
     //inicializando o cabeçalho
     cabSS.num = 0;
     cabSS.posPrimeiro = 0;
@@ -177,20 +179,22 @@ void SeqSet::Inserir(pacote& _p) {
     Bloco aux;
     Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
     unsigned limBloco = 80; // Limite de qntdade de dados para cada bloco
-    fstream arq;
+    unsigned long long PosAbs;
+    fstream arq(NOMEARQUIVO);
     if (arq) {
         arq.read((char*) &cabSS, sizeof(Cabecalho)); //lê o cabeçalho
         if(cabSS.num == 0) {
             cabSS.num = 1;
             cabSS.posPrimeiro = 0;
             cabSS.posProximo = 1;
-            arq.seekp(0);
             arq.write((char*) &cabSS, sizeof(Cabecalho));
             //inserindo primeiro dado e modificando cabeçalho do bloco
             aux.dados[0] = _p;
             aux.cabBloco.quantidade = 1;
             aux.cabBloco.proximo = -1;
-            arq.seekp(sizeof(Cabecalho)); // Corrige o ponteiro para a posição relativa 0
+            PosAbs = sizeof(Cabecalho);
+
+            arq.seekp(PosAbs);
             arq.write((char*) &aux, sizeof(Bloco));
         } else {
             aux = BuscarBloco(_p);
@@ -305,14 +309,16 @@ void SeqSet::AlterarPacote(pacote& _p) {
 }
  
 void SeqSet::ImprimirSS() {
-    ifstream arq;
+    ifstream arq(NOMEARQUIVO);
     Bloco percorre;
     string source, dest, info, prot; //para imprimir os vetores de char
+    unsigned long long PosAbs;
     arq.read((char*) &cabSS,sizeof(Cabecalho));
     cout << "Numero de Blocos: " << cabSS.num << "   Pos do primeiro: " 
     << cabSS.posPrimeiro << "   Pos do proximo disponível: " <<  cabSS.posProximo << endl;
     //lendo o primeiro bloco
-    arq.seekg(cabSS.posPrimeiro*sizeof(Bloco)+sizeof(Cabecalho)); 
+    PosAbs = sizeof(Cabecalho) + cabSS.posPrimeiro*sizeof(Bloco);
+    arq.seekg(PosAbs);
     arq.read((char*) &percorre,sizeof(Bloco));
     //imprimindo os dados 
     cout << "BLOCO " << percorre.idBloco << ":" << endl;
@@ -325,7 +331,7 @@ void SeqSet::ImprimirSS() {
         cout << dest << " ";
         prot =  percorre.dados[i].protocolo;
         cout << prot << " ";
-        cout << percorre.dados[i].tamanho;
+        cout << percorre.dados[i].tamanho << " ";
         info = percorre.dados[i].infomarcao;
         cout << info << endl;
     }
@@ -367,7 +373,23 @@ void SeqSet::ImprimirSS() {
 };*/
 
 int main(){
+    // APENAS TESTE
     SeqSet Seq;
+    pacote dado;
+
+    cin >> dado.indice;
+    cin >> dado.tempo;
+    cin >> dado.origem;
+    cin >> dado.destino;
+    cin >> dado.protocolo;
+    cin >> dado.tamanho;
+    cin >> dado.infomarcao;
+    Seq.Inserir(dado);
+
+    Seq.ImprimirSS();
+    return 0;
+    
+
     std::ifstream arquivo_csv("captura_pacotes.csv");
     if (!arquivo_csv) {
         return EXIT_FAILURE;
