@@ -491,7 +491,7 @@ int main(){
                 
                 break;
 
-            case 'p': // Imprimir
+            case 'b': // Busca de elementos a partir da chave primária Tamanho e chave secundária Índice
                 
                 break;
 
