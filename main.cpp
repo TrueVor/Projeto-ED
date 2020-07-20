@@ -177,8 +177,9 @@ void SeqSet::Inserir(pacote& _p) {
     Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
     unsigned limBloco = 80; // Limite de qntdade de dados para cada bloco
     unsigned long long PosAbs;
-    fstream arq(NOMEARQUIVO);
+    fstream arq(NOMEARQUIVO, ios::binary | ios::in | ios::out);
     if (arq) {
+        
         arq.read((char*) &cabSS, sizeof(Cabecalho)); //lê o cabeçalho
         if(cabSS.num == 0) {
             cabSS.num = 1;
@@ -192,11 +193,16 @@ void SeqSet::Inserir(pacote& _p) {
             aux.cabBloco.quantidade = 1;
             aux.cabBloco.proximo = -1;
             PosAbs = sizeof(Cabecalho);
+            cout << PosAbs << endl;
 
             arq.seekp(PosAbs);
-            arq.write((char*) &aux, sizeof(Bloco));
+            arq.write((char *) &aux, sizeof(Bloco));
         } else {
-            aux = BuscarBloco(_p);
+            int pos = BuscarBloco(_p);
+
+            PosAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
+            arq.seekp(PosAbs);
+            arq.read((char*) &aux, sizeof(Bloco));
 
             if(aux.cabBloco.quantidade == limBloco){ // Se o bloco estiver cheio, dividir
                 for(unsigned i = 0; i < (limBloco/2); i++){
@@ -224,28 +230,30 @@ void SeqSet::Inserir(pacote& _p) {
                 // Inserir na memória o Cabeçalho , Bloco aux e Bloco aux2
                 PosAbs = 0;
                 arq.seekp(PosAbs);
-                arq.write((char*) &cabSS, sizeof(Cabecalho));
+                arq.write((char *) &cabSS, sizeof(Cabecalho));
 
                 PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
                 arq.seekp(PosAbs);
-                arq.write((char*) &aux, sizeof(Bloco));
+                arq.write((char *) &aux, sizeof(Bloco));
 
                 PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
                 arq.seekp(PosAbs);
-                arq.write((char*) &aux2, sizeof(Bloco));
+                arq.write((char *) &aux2, sizeof(Bloco));
                 
             } else { // Do contrário, apenas inserir o dado no bloco
+                
                 aux.dados[aux.cabBloco.quantidade] = _p;
                 
-                aux.cabBloco.quantidade++;
+                aux.cabBloco.quantidade += 1;
                 //selectionSort(aux.dados, aux.cabBloco.quantidade);
-                PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
+                PosAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
+                arq.clear();
                 arq.seekp(PosAbs); // Posição Absoluta do Bloco aux
-                arq.write((char*) &aux, sizeof(Bloco));
+                arq.write((char *) &aux, sizeof(Bloco));
             }
         }
-        arq.close();
         
+        arq.close();
     }
 }
 
