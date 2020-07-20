@@ -64,6 +64,8 @@ Bloco::Bloco() {
     cabBloco.proximo = -1;
     cabBloco.quantidade = 0;
     idBloco = 0;
+    for(unsigned i = 0; i < 80; i++)
+        dados[i] = {};
 }
 
 SeqSet::SeqSet() {
@@ -189,7 +191,7 @@ void SeqSet::Inserir(pacote& _p) {
             cabSS.posProximo = 1;
             PosAbs = 0;
             arq.seekp(PosAbs);
-            arq.write((char*) &cabSS, sizeof(Cabecalho));
+            arq.write((char *) &cabSS, sizeof(Cabecalho));
             //inserindo primeiro dado e modificando cabeçalho do bloco
             aux.dados[0] = _p;
             aux.cabBloco.quantidade = 1;
@@ -197,7 +199,7 @@ void SeqSet::Inserir(pacote& _p) {
             PosAbs = sizeof(Cabecalho);
 
             arq.seekp(PosAbs);
-            arq.write((char*) &aux, sizeof(Bloco));
+            arq.write((char *) &aux, sizeof(Bloco));
         } else {
             aux = BuscarBloco(_p);
 
@@ -227,24 +229,23 @@ void SeqSet::Inserir(pacote& _p) {
                 // Inserir na memória o Cabeçalho , Bloco aux e Bloco aux2
                 PosAbs = 0;
                 arq.seekp(PosAbs);
-                arq.write((char*) &cabSS, sizeof(Cabecalho));
+                arq.write((char *) &cabSS, sizeof(Cabecalho));
 
                 PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
                 arq.seekp(PosAbs);
-                arq.write((char*) &aux, sizeof(Bloco));
+                arq.write((char *) &aux, sizeof(Bloco));
 
                 PosAbs = (sizeof(Bloco)*aux2.idBloco) + sizeof(Cabecalho);
                 arq.seekp(PosAbs);
-                arq.write((char*) &aux2, sizeof(Bloco));
+                arq.write((char *) &aux2, sizeof(Bloco));
                 
             } else { // Do contrário, apenas inserir o dado no bloco
                 aux.dados[aux.cabBloco.quantidade] = _p;
-                
                 aux.cabBloco.quantidade++;
                 //selectionSort(aux.dados, aux.cabBloco.quantidade);
                 PosAbs = (sizeof(Bloco)*aux.idBloco) + sizeof(Cabecalho);
                 arq.seekp(PosAbs); // Posição Absoluta do Bloco aux
-                arq.write((char*) &aux, sizeof(Bloco));
+                arq.write((char *) &aux, sizeof(Bloco));
             }
         }
         arq.close();
