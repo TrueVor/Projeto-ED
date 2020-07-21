@@ -172,7 +172,9 @@ void selectionSort(pacote arr[], unsigned n){
         min_idx = i;
         for (j = i+1; j < n; j++)
         	if (arr[j].tamanho < arr[min_idx].tamanho)  
-           		min_idx = j;  
+           		min_idx = j;
+            else if (arr[j].tamanho == arr[min_idx].tamanho && arr[j].indice < arr[min_idx].indice)
+                min_idx = j;
   
         //troca o menor de pos
         swap(arr[min_idx], arr[i]);  
