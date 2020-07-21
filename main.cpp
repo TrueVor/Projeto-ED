@@ -1,3 +1,10 @@
+/*
+    
+    Trabalho de Estrutura de Dados - Parte 1
+    Sequence Set
+    Copyright 2020 by Mateus Ribeiro Fratini, João Victor e Victor Huggo
+
+*/
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -46,8 +53,7 @@ class Bloco {
 
 class SeqSet {
     private:
-    Cabecalho cabSS;  
-    Bloco* auxiliar;
+    Cabecalho cabSS;
     public:
     SeqSet();
 	
