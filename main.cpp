@@ -422,7 +422,9 @@ int main(){
     string delimitador = "\",\""; // delimitador entre os campos
     unsigned posFimCampo; // posição final do campo
     char opt; // opção para manipulação do arquivo
-
+    // Variaveis para utilizar na inserção
+    string alt;
+    float tempo;
 
     pacote umPacote;
     cout << "Lendo o arquivo csv..." << endl;
@@ -480,15 +482,30 @@ int main(){
     } while (umPacote.indice <  2162875);
 
     cin >> opt;
-
+    
     do {
         switch (opt) {
             case 'a': // Alterar dados específicos 
-
+                Set.AlterarPacote(umPacote);
                 break;
 
             case 'i': // Inserção de dados
-                
+                cout << "Digite os dados para inserir:" << endl;
+                cout << "tempo: ";
+                cin >> tempo;
+                umPacote.tempo = tempo;
+                cout << "origem: ";
+                cin >> alt;
+                strcpy(umPacote.origem, alt.c_str()); //copia a string como um vetor de char
+                cout << "destino: ";
+                cin >> alt;
+                strcpy(umPacote.destino, alt.c_str());
+                cout << "protocolo: ";
+                cin >> alt;
+                strcpy(umPacote.protocolo, alt.c_str());
+                cout << "info: ";
+                cin >> alt;
+                strcpy(umPacote.infomarcao, alt.c_str());
                 break;
 
             case 'b': // Busca de elementos a partir da chave primária Tamanho e chave secundária Índice
