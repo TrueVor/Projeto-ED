@@ -54,6 +54,7 @@ class SeqSet {
     int BuscarBloco(pacote& _p); //retorna o id do bloco encontrado 
     void Inserir(pacote& _p);  
     bool BuscarPacote(pacote& _p);
+    pacote EncontraPacote(unsigned tamanho, unsigned indice);
     void AlterarPacote(pacote& _p);
 
     void ImprimirSS();
@@ -259,6 +260,29 @@ void SeqSet::Inserir(pacote& _p) {
     }
 }
 
+pacote SeqSet::EncontraPacote(unsigned tamanho, unsigned indice) {
+    Bloco aux;
+    pacote _p;
+    _p.indice = indice;
+    _p.tamanho = tamanho;
+    int posBloco = BuscarBloco(_p);
+    ifstream arq(NOMEARQUIVO, ios::binary);
+    //lendo dados do arquivo
+    arq.read((char*) &cabSS, sizeof(Cabecalho));
+    int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * posBloco));
+    arq.seekg(posAbs);
+    arq.read((char*) &aux, sizeof(Bloco));
+    arq.close();
+    //busca sequencial no vetor
+    int tam = aux.cabBloco.quantidade - 1;
+    for (int i = 0; i < tam; i++) {
+        if ((aux.dados[i].tamanho == tamanho) && (aux.dados[i].indice == indice))
+            return aux.dados[i];
+    }
+    _p = {};
+    return _p;
+}
+
 bool SeqSet::BuscarPacote(pacote& _p) {
     Bloco aux;
     int posBloco = BuscarBloco(_p);
@@ -426,6 +450,8 @@ int main(){
     string alt;
     float tempo;
 
+    unsigned tamanho, indice; // Variaveis para utilizar na busca
+
     pacote umPacote;
     cout << "Lendo o arquivo csv..." << endl;
     do {
@@ -496,7 +522,7 @@ int main(){
                 umPacote.tempo = tempo;
                 cout << "origem: ";
                 cin >> alt;
-                strcpy(umPacote.origem, alt.c_str()); //copia a string como um vetor de char
+                strcpy(umPacote.origem, alt.c_str()); // copia a string como um vetor de char
                 cout << "destino: ";
                 cin >> alt;
                 strcpy(umPacote.destino, alt.c_str());
@@ -509,7 +535,10 @@ int main(){
                 break;
 
             case 'b': // Busca de elementos a partir da chave primária Tamanho e chave secundária Índice
-                
+                    umPacote.tamanho = tamanho;
+                    umPacote.indice = indice;
+                    if(Set.BuscarPacote(umPacote))
+                        umPacote = Set.EncontraPacote(tamanho, indice);
                 break;
 
             case 'c': // encerra
