@@ -410,21 +410,6 @@ void SeqSet::ImprimirSS() {
     arq.close();
 }
 
-
-
-// para saber o tamanho de cada campo, fiz um primeiro teste para
-// pegar o tamanho máximo de cada campo do tipo texto
-// adicionei mais uma posição para armazenar o término de string '\0'
-/*struct pacote {
-    unsigned indice; 
-    float tempo;
-    char origem[40];
-    char destino[40];
-    char protocolo[18];
-    unsigned tamanho;
-    char infomarcao[1650];
-};*/
-
 int main(){
 
     std::ifstream arquivo_csv("captura_pacotes.csv");
@@ -446,8 +431,8 @@ int main(){
     string delimitador = "\",\""; // delimitador entre os campos
     unsigned posFimCampo; // posição final do campo
     char opt; // opção para manipulação do arquivo
-    // Variaveis para utilizar na inserção
-    string alt;
+    // Variaveis para utilizar na manipulação
+    string alt, source, dest, prot, info;
     float tempo;
 
     unsigned tamanho, indice; // Variaveis para utilizar na busca
@@ -460,45 +445,43 @@ int main(){
         }
         campo = linha.erase(0,1); // remove primeiro caracter da linha (")
 
-        // obtendo primeiro campo, um inteiro - No.
+        // Indice.
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         umPacote.indice = stoul(campo);
-        //cout << umPacote.indice << endl;
 
-        // obtendo segundo campo, um float - Time
+        // Time
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         umPacote.tempo = stof(campo);
 
-        // obtendo terceiro campo, um texto - Source
+        // Source
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         strcpy(umPacote.origem, campo.c_str());
 
-        // obtendo quarto campo, um texto - Destination
+        // Destination
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         strcpy(umPacote.destino, campo.c_str());
 
-        // obtendo quinto campo, um texto - Protocol
+        // Protocol
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         strcpy(umPacote.protocolo, campo.c_str());
 
-        // obtendo sexto campo, um texto - Length
+        // Length
         posFimCampo = linha.find(delimitador);
         campo = linha.substr(0, posFimCampo);
         linha.erase(0, posFimCampo + delimitador.length());
         umPacote.tamanho = stoul(campo);
 
-        // obtendo último campo, um texto - Info
-        // nesse caso, procuro o último aspas, fazendo busca reversa
+        // Info
         posFimCampo = linha.rfind("\"");
         campo = linha.substr(0, posFimCampo);
         strcpy(umPacote.infomarcao, campo.c_str());
@@ -510,35 +493,68 @@ int main(){
     cin >> opt;
     
     do {
+        cout << endl << "Digite uma das teclas abaixo para manipulação do arquivo:" << endl;
+        cout << "a - Alterar dados | i - Inserção de dados" << endl;
+        cout << "b - Busca de dados específicos | c - Encerra o programa" << endl;
         switch (opt) {
             case 'a': // Alterar dados específicos 
+                cout << endl << "Digite a chave primaria Tamanho a ser procurada";
+                cin >> tamanho;
+                umPacote.tamanho = tamanho;
+                cout << endl << "Digite a chave secundaria Indice a ser procurada";
+                cin >> indice;
+                umPacote.indice = indice;
                 Set.AlterarPacote(umPacote);
                 break;
 
             case 'i': // Inserção de dados
                 cout << "Digite os dados para inserir:" << endl;
-                cout << "tempo: ";
+                cout << "Índice: ";
+                cin >> indice;
+                umPacote.indice = indice;
+                cout << endl << "tempo: ";
                 cin >> tempo;
                 umPacote.tempo = tempo;
-                cout << "origem: ";
+                cout << endl << "origem: ";
                 cin >> alt;
                 strcpy(umPacote.origem, alt.c_str()); // copia a string como um vetor de char
-                cout << "destino: ";
+                cout << endl << "destino: ";
                 cin >> alt;
                 strcpy(umPacote.destino, alt.c_str());
-                cout << "protocolo: ";
+                cout << endl << "protocolo: ";
                 cin >> alt;
                 strcpy(umPacote.protocolo, alt.c_str());
-                cout << "info: ";
+                cout << endl << "Tamanho: ";
+                cin >> tamanho;
+                umPacote.tamanho = tamanho;
+                cout << endl << "info: ";
                 cin >> alt;
                 strcpy(umPacote.infomarcao, alt.c_str());
+
+                Set.Inserir(umPacote);
                 break;
 
             case 'b': // Busca de elementos a partir da chave primária Tamanho e chave secundária Índice
-                    umPacote.tamanho = tamanho;
-                    umPacote.indice = indice;
-                    if(Set.BuscarPacote(umPacote))
-                        umPacote = Set.EncontraPacote(tamanho, indice);
+                cout << endl << "Digite a chave primaria Tamanho para busca";
+                cin >> tamanho;
+                cout << endl << "Digite a chave secundaria Indice para busca";
+                cin >> indice;
+                umPacote.tamanho = tamanho;
+                umPacote.indice = indice;
+                if(Set.BuscarPacote(umPacote))
+                    umPacote = Set.EncontraPacote(tamanho, indice);
+
+                cout << endl << "Indice: " << umPacote.indice << " ";
+                cout << endl << "Tempo: " << umPacote.tempo << " ";
+                source = umPacote.origem;
+                cout << endl << "Origem: " << source << " ";
+                dest =  umPacote.destino;
+                cout << endl << "Destino: " << dest << " ";
+                prot =  umPacote.protocolo;
+                cout << endl << "Protocolo: " << prot << " ";
+                cout << endl << "Tamanho: " << umPacote.tamanho << " ";
+                info = umPacote.infomarcao;
+                cout << endl << "Informação: " << info << endl;
                 break;
 
             case 'c': // encerra
