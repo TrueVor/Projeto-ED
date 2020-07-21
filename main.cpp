@@ -2,7 +2,7 @@
     
     Trabalho de Estrutura de Dados - Parte 1
     Sequence Set
-    Copyright 2020 by Mateus Ribeiro Fratini, João Victor e Victor Huggo
+    Copyright 2020 by Mateus Ribeiro Fratini, João Victor Morais e Victor Huggo
 
 */
 #include <iostream>
@@ -432,7 +432,6 @@ int main(){
     }
 
     SeqSet Set;
-    int cont = 0;
     string campo; // variável para obter um campo de cada linha lida
     string delimitador = "\",\""; // delimitador entre os campos
     unsigned posFimCampo; // posição final do campo
