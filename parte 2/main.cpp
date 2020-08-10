@@ -12,16 +12,24 @@ struct indice {
     unsigned indice;
 };
 
-class BPlus {
+class Pagina {
+    friend class BPlus;
     private:
     indice idx[80]; 
-    BPlus* pont_tree[81]; //ponteiros usados para páginas que não são folhas
-    int pont_seq[81]; //ponteiros usados nas folhas
+    Pagina* pont_tree[81]; //ponteiros usados para páginas que não são folhas
+    int pont_seq[81]; //ponteiros usados nas folhas, para acesso ao sequence set
     bool ehfolha; //indica se a página é folha
+    unsigned elementos; //guarda a quantidade de elementos váldos no vetor de indice
     public:
-    BPlus();
+    Pagina();
+};
+
+class BPlus {
+    private:
+    Pagina* raiz;
+    public:
     void Inserir (unsigned t, unsigned i);
-    BPlus* Buscar (unsigned t, unsigned i); //retorna o endereço da página
+    Pagina* Buscar (unsigned t, unsigned i); //retorna o endereço da página
     void Alterar (unsigned t, unsigned i);
 };
 
