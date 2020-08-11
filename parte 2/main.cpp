@@ -83,26 +83,28 @@ void BPlus::Inserir(unsigned t, unsigned i){
         raiz->ehfolha = true;
         raiz->elementos = 1;
     } else {
-        Pagina* cursor = raiz;
+        Pagina* precursor = raiz;
         Pagina* parent;
+        bool achou = false;
 
-        // No loop abaixo, o cursor irá para o nó folha onde possivelmente será inserido o dado.
-        while(cursor->ehfolha == false){
-            parent = cursor;
-            for(int i = 0; i < cursor->elementos; i++){
-                if(i == cursor->elementos - 1){
-                    cursor->pont_tree[i+1];
-                } else if(t < cursor->idx[i].tam){
-                    cursor = cursor->pont_tree[i];
-                } else if(t == cursor->idx[i].tam){
-                    if(i < cursor->idx[i].indice){
-                        cursor = cursor->pont_tree[i];
-                    }
+        // No loop abaixo, o precursor irá para o nó folha onde possivelmente será inserido o dado.
+        while(precursor->ehfolha == false){
+            parent = precursor;
+            for(int i = 0; i < precursor->elementos && achou == false; i++){
+                if(i == precursor->elementos - 1){
+                    precursor->pont_tree[i+1];
+                    achou = true;
+                } else if(t < precursor->idx[i].tam){
+                    precursor = precursor->pont_tree[i];
+                    achou = true;
+                } else if(t == precursor->idx[i].tam && i < precursor->idx[i].indice){
+                    precursor = precursor->pont_tree[i];
+                    achou = true;
                 }
             }
         }
 
-        if(cursor->elementos < 80){
+        if(precursor->elementos < 80){
 
         }
 
