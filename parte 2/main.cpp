@@ -19,7 +19,7 @@ class Pagina {
     Pagina* pont_tree[81]; //ponteiros usados para páginas que não são folhas
     int pont_seq[81]; //ponteiros usados nas folhas, para acesso ao sequence set
     bool ehfolha; //indica se a página é folha
-    unsigned elementos; //guarda a quantidade de elementos váldos no vetor de indice
+    unsigned elementos; //guarda a quantidade de elementos válidos no vetor de indice
     public:
     Pagina();
 };
@@ -73,6 +73,40 @@ Pagina* BPlus::Buscar(unsigned c1, unsigned c2) {
         }
     }
     return percorre;
+}
+
+void BPlus::Inserir(unsigned t, unsigned i){
+
+    if(raiz == NULL){
+        raiz->idx[0].indice = i;
+        raiz->idx[0].tam = t;
+        raiz->ehfolha = true;
+        raiz->elementos = 1;
+    } else {
+        Pagina* cursor = raiz;
+        Pagina* parent;
+
+        // No loop abaixo, o cursor irá para o nó folha onde possivelmente será inserido o dado.
+        while(cursor->ehfolha == false){
+            parent = cursor;
+            for(int i = 0; i < cursor->elementos; i++){
+                if(i == cursor->elementos - 1){
+                    cursor->pont_tree[i+1];
+                } else if(t < cursor->idx[i].tam){
+                    cursor = cursor->pont_tree[i];
+                } else if(t == cursor->idx[i].tam){
+                    if(i < cursor->idx[i].indice){
+                        cursor = cursor->pont_tree[i];
+                    }
+                }
+            }
+        }
+
+        if(cursor->elementos < 80){
+
+        }
+
+    }
 }
 
 int main(){};
