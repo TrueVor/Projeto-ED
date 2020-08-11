@@ -40,7 +40,7 @@ class BPlus {
     private:
     Pagina* raiz;
     public:
-    Bplus();
+    BPlus();
     void Inserir (unsigned t, unsigned i);
     Pagina* Buscar (unsigned c1, unsigned c2); //retorna o endereço da página
     void Alterar (unsigned t, unsigned i);
