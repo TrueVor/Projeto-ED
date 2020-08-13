@@ -124,6 +124,56 @@ void BPlus::Inserir(unsigned t, unsigned in){
             precursor->elementos++;
             precursor->pont_tree[precursor->elementos] = precursor->pont_tree[precursor->elementos-1];
             precursor->pont_tree[precursor->elementos-1] = NULL;
+        } else { // Caso a Página estiver cheia, iniciar a divisão da mesma.
+            
+            // Criando nova página
+            Pagina* novaPagina = new Pagina;
+            // criando uma página virtual contendo as chaves da página e a chave a ser inserida
+            indice PaginaVirtual[81];
+            for(int i = 0; i < 80; i++){
+                PaginaVirtual[i] = precursor->idx[i];
+            }
+            int i = 0, j;
+            while((t > PaginaVirtual[i].tam || (t == PaginaVirtual[i].tam && in > PaginaVirtual[i].indice)) && i < 80){
+                i++;
+            }
+
+            // Abrindo espaço para as chaves a serem inseridas
+            for(int j = 81; j > i; j--){
+                PaginaVirtual[j] = PaginaVirtual[j-1];
+            }
+            PaginaVirtual[i].tam = t;
+            PaginaVirtual[i].indice = in;
+            novaPagina->ehfolha = true;
+            // Dividindo o precursor em duas páginas folha
+            precursor->elementos = 40;
+            novaPagina->elementos = 41;
+            // Fazendo precursor apontar para a nova Página folha
+            precursor->pont_tree[precursor->elementos] = novaPagina;
+            // Fazendo a Nova Página apontar para a próxima página
+            novaPagina->pont_tree[novaPagina->elementos] = precursor->pont_tree[81];
+            precursor->pont_tree[81] = NULL;
+            // Adicionando elementos na Nova Página
+            for(i = 0; i < precursor->elementos; i++){
+                precursor->idx[i] = PaginaVirtual[i];
+            }
+            for(i = 0, j = precursor->elementos; i < novaPagina->elementos; i++, j++){
+                novaPagina->idx[i] = PaginaVirtual[j];
+            }
+
+            if(precursor == raiz){
+                // Se o precursor for raiz, criar nova raiz
+                Pagina* novaRaiz = new Pagina;
+                novaRaiz->idx[0] = novaPagina->idx[0];
+                novaRaiz->pont_tree[0] = precursor;
+                novaRaiz->pont_tree[1] = novaPagina;
+                novaRaiz->ehfolha = false;
+                novaRaiz->elementos = 1;
+                raiz = novaRaiz;
+            } else {
+                
+            }
+
         }
 
     }
