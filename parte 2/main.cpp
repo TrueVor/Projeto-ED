@@ -517,10 +517,10 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
 }
 
 
-void BPlus::Inserir(unsigned t, unsigned in){
+void BPlus::Inserir(unsigned t, unsigned i){
 
     if(raiz == NULL){
-        raiz->idx[0].indice = in;
+        raiz->idx[0].indice = i;
         raiz->idx[0].tam = t;
         raiz->ehfolha = true;
         raiz->elementos = 1;
@@ -532,15 +532,15 @@ void BPlus::Inserir(unsigned t, unsigned in){
         // No loop abaixo, o precursor irá para a página folha onde possivelmente será inserido o dado.
         while(precursor->ehfolha == false){
             parent = precursor;
-            for(int i = 0; i < precursor->elementos && achou == false; i++){
-                if(i == precursor->elementos - 1){
-                    precursor->pont_tree[i+1];
+            for(int k = 0; k < precursor->elementos && achou == false; k++){
+                if(k == precursor->elementos - 1){
+                    precursor->pont_tree[k+1];
                     achou = true;
-                } else if(t < precursor->idx[i].tam){
-                    precursor = precursor->pont_tree[i];
+                } else if(t < precursor->idx[k].tam){
+                    precursor = precursor->pont_tree[k];
                     achou = true;
-                } else if(t == precursor->idx[i].tam && i < precursor->idx[i].indice){
-                    precursor = precursor->pont_tree[i];
+                } else if(t == precursor->idx[k].tam && i < precursor->idx[k].indice){
+                    precursor = precursor->pont_tree[k];
                     achou = true;
                 }
             }
@@ -550,19 +550,19 @@ void BPlus::Inserir(unsigned t, unsigned in){
         if(precursor->elementos < 80){
 
             // Encontrando a posição
-            int i = 0;
-            while((t > precursor->idx[i].tam || (t == precursor->idx[i].tam && in > precursor->idx[i].indice)) && i < precursor->elementos){
-                i++;
+            int k = 0;
+            while((t > precursor->idx[k].tam || (t == precursor->idx[k].tam && i > precursor->idx[k].indice)) && i < precursor->elementos){
+                k++;
             }
             
             // Liberando espaço
-            for(int j = precursor->elementos; j > i; j--){
+            for(int j = precursor->elementos; j > k; j--){
                 precursor->idx[j] = precursor->idx[j-1];
             }
 
             // Adicionando as chaves no espaço
-            precursor->idx[i].tam = t;
-            precursor->idx[i].indice = in;
+            precursor->idx[k].tam = t;
+            precursor->idx[k].indice = i;
             precursor->elementos++;
             precursor->pont_tree[precursor->elementos] = precursor->pont_tree[precursor->elementos-1];
             precursor->pont_tree[precursor->elementos-1] = NULL;
@@ -572,20 +572,20 @@ void BPlus::Inserir(unsigned t, unsigned in){
             Pagina* novaPagina = new Pagina;
             // criando uma página virtual contendo as chaves da página e a chave a ser inserida
             indice PaginaVirtual[81];
-            for(int i = 0; i < 80; i++){
-                PaginaVirtual[i] = precursor->idx[i];
+            for(int k = 0; k < 80; k++){
+                PaginaVirtual[k] = precursor->idx[k];
             }
-            int i = 0, j;
-            while((t > PaginaVirtual[i].tam || (t == PaginaVirtual[i].tam && in > PaginaVirtual[i].indice)) && i < 80){
-                i++;
+            int k = 0, j;
+            while((t > PaginaVirtual[k].tam || (t == PaginaVirtual[k].tam && i > PaginaVirtual[k].indice)) && k < 80){
+                k++;
             }
 
             // Abrindo espaço para as chaves a serem inseridas
             for(int j = 81; j > i; j--){
                 PaginaVirtual[j] = PaginaVirtual[j-1];
             }
-            PaginaVirtual[i].tam = t;
-            PaginaVirtual[i].indice = in;
+            PaginaVirtual[k].tam = t;
+            PaginaVirtual[k].indice = in;
             novaPagina->ehfolha = true;
             // Dividindo o precursor em duas páginas folha
             precursor->elementos = 40;
@@ -596,11 +596,11 @@ void BPlus::Inserir(unsigned t, unsigned in){
             novaPagina->pont_tree[novaPagina->elementos] = precursor->pont_tree[81];
             precursor->pont_tree[81] = NULL;
             // Adicionando elementos na Nova Página
-            for(i = 0; i < precursor->elementos; i++){
-                precursor->idx[i] = PaginaVirtual[i];
+            for(k = 0; k < precursor->elementos; k++){
+                precursor->idx[k] = PaginaVirtual[k];
             }
-            for(i = 0, j = precursor->elementos; i < novaPagina->elementos; i++, j++){
-                novaPagina->idx[i] = PaginaVirtual[j];
+            for(i = 0, j = precursor->elementos; k < novaPagina->elementos; k++, j++){
+                novaPagina->idx[k] = PaginaVirtual[j];
             }
 
             if(precursor == raiz){
