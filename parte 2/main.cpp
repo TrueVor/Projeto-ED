@@ -495,8 +495,8 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
         while (achou != false && pos < folha->elementos) {
             if (folha->idx[pos].tam == c1 && folha->idx[pos].indice == c2) {
                 achou = true;
-            }
-            pos++;
+            } else
+                pos++;
         }
         if (achou) {
             ifstream arq(NOMEARQUIVO, ios::binary);
