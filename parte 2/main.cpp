@@ -684,7 +684,15 @@ void BPlus::InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho
         for(j = 81; j > k; j--){
             ChaveVirtual[j] = ChaveVirtual[j-1];
         }
+        ChaveVirtual[k].indice = i;
+        ChaveVirtual[k].tam = t;
+
+        //Abrindo espaço para o novo ponteiro
+        for(j = 81; j > k; j--){
+            PonteiroVirtual[j] = PonteiroVirtual[j-1];
+        }
         PonteiroVirtual[k+1] = filho;
+
         novoInterno->ehfolha = false;
         //Dividindo o cursor em duas páginas
         cursor->elementos = 40;
@@ -706,7 +714,7 @@ void BPlus::InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho
             raiz = novaRaiz;
         } else {
             // Recursão
-            InserirInterno(cursor->idx[cursor->elementos].tam, cursor->idx[cursor->elementos].indice, EncontrarParente(raiz, cursor), novoInterno)
+            InserirInterno(novoInterno->idx[0].tam, novoInterno->idx[0].indice, EncontrarParente(raiz, cursor), novoInterno);
         }
 
     }
