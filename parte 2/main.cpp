@@ -313,7 +313,7 @@ void SeqSet::AlterarPacote(pacote& _p) {
     else {
         Bloco aux;
         int pos = BuscarBloco(_p);
-        ifstream arq(NOMEARQUIVO);
+        ifstream arq(NOMEARQUIVO, ios::binary);
         
         //lendo dados do arquivo
         arq.read((char*) &cabSS, sizeof(Cabecalho));
@@ -499,7 +499,7 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
             pos++;
         }
         if (achou) {
-            ifstream arq(NOMEARQUIVO);
+            ifstream arq(NOMEARQUIVO, ios::binary);
             int pos_relativa = folha->pont_seq[pos+1]; //posição do elemento encontrado no bloco
             
             //lendo dados do arquivo
@@ -525,6 +525,8 @@ void BPlus::Inserir(unsigned t, unsigned i){
         raiz->ehfolha = true;
         raiz->elementos = 1;
     } else {
+        
+        /*
         Pagina* precursor = raiz;
         Pagina* parent;
         bool achou = false;
@@ -544,7 +546,9 @@ void BPlus::Inserir(unsigned t, unsigned i){
                     achou = true;
                 }
             }
-        }
+        }*/
+        Pagina* precursor = Buscar(t, i);
+
 
         // Inserindo as chaves no precursos que é folha
         if(precursor->elementos < 80){
@@ -581,11 +585,11 @@ void BPlus::Inserir(unsigned t, unsigned i){
             }
 
             // Abrindo espaço para as chaves a serem inseridas
-            for(int j = 81; j > i; j--){
+            for(int j = 81; j > k; j--){
                 PaginaVirtual[j] = PaginaVirtual[j-1];
             }
             PaginaVirtual[k].tam = t;
-            PaginaVirtual[k].indice = in;
+            PaginaVirtual[k].indice = i;
             novaPagina->ehfolha = true;
             // Dividindo o precursor em duas páginas folha
             precursor->elementos = 40;
