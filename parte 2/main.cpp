@@ -452,7 +452,7 @@ class BPlus {
     BPlus();
     void Inserir (unsigned t, unsigned i);
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
-    Pagina* EncontrarParente(Pagina* raiz, Pagina* cursor);
+    Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
     Pagina* Buscar (unsigned c1, unsigned c2); //retorna o endereço da página
     void AcessarBloco(Pagina* folha, unsigned c1, unsigned c2);
     void Alterar (unsigned t, unsigned i);
@@ -527,37 +527,14 @@ void BPlus::Inserir(unsigned t, unsigned i){
         raiz->ehfolha = true;
         raiz->elementos = 1;
     } else {
-        
-        /*
-        Pagina* precursor = raiz;
-        Pagina* parent;
-        bool achou = false;
-
-        // No loop abaixo, o precursor irá para a página folha onde possivelmente será inserido o dado.
-        while(precursor->ehfolha == false){
-            parent = precursor;
-            for(int k = 0; k < precursor->elementos && achou == false; k++){
-                if(k == precursor->elementos - 1){
-                    precursor->pont_tree[k+1];
-                    achou = true;
-                } else if(t < precursor->idx[k].tam){
-                    precursor = precursor->pont_tree[k];
-                    achou = true;
-                } else if(t == precursor->idx[k].tam && i < precursor->idx[k].indice){
-                    precursor = precursor->pont_tree[k];
-                    achou = true;
-                }
-            }
-        }*/
         Pagina* precursor = Buscar(t, i);
 
-
-        // Inserindo as chaves no precursos que é folha
+        // Inserindo as chaves no precursor que é folha
         if(precursor->elementos < 80){
 
             // Encontrando a posição
             int k = 0;
-            while((t > precursor->idx[k].tam || (t == precursor->idx[k].tam && i > precursor->idx[k].indice)) && i < precursor->elementos){
+            while((t > precursor->idx[k].tam || (t == precursor->idx[k].tam && i > precursor->idx[k].indice)) && k < precursor->elementos){
                 k++;
             }
             
@@ -646,80 +623,102 @@ void BPlus::Inserir(unsigned t, unsigned i){
 }
 
 void BPlus::InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho){
-    if(cursor->elementos < 80){
-        //Se o cursor não estiver cheio
-        //Encontrar a posição correta para a nova chave
-        int k = 0;
-        while((t > cursor->idx[k].tam || (t == cursor->idx[k].tam && i > cursor->idx[k].indice)) && k < cursor->elementos)
-            k++;
-        // Abrindo espaço para nova chave
-        for(int j = cursor->elementos; j > k; j--){
-            cursor->idx[j] = cursor->idx[j-1];
-        }
-        //Abrindo espaço para o novo ponteiro
-        for(int j = cursor->elementos+1; j > k+1; j--){
-            cursor->pont_tree[j] = cursor->pont_tree[j-1];
-        }
-        cursor->idx[k].tam = t;
-        cursor->idx[k].indice = i;
-        cursor->elementos++;
-        cursor->pont_tree[k+1] = filho;
+    if(cursor == NULL){
+        cerr << "erro na inserção!" << endl;
     } else {
-        //Se o cursor estiver cheio
-        //Iniciar a divisão
-        Pagina* novoInterno = new Pagina;
-        //Criando Pagina Interna Virtual
-        indice ChaveVirtual[81];
-        Pagina* PonteiroVirtual[82];
-        for(int k = 0; k < 80; k++){
-            ChaveVirtual[k] = cursor->idx[k];
-        }
-        for(int k = 0; k < 81; k++){
-            PonteiroVirtual[k] = cursor->pont_tree[k];
-        }
-        int k = 0, j;
-        while( (t > ChaveVirtual[k].tam || (t == ChaveVirtual[k].tam && i > ChaveVirtual[k].indice)) && k < 80)
-            k++;
-        //Abrindo espaço para as novas chaves
-        for(j = 81; j > k; j--){
-            ChaveVirtual[j] = ChaveVirtual[j-1];
-        }
-        ChaveVirtual[k].indice = i;
-        ChaveVirtual[k].tam = t;
-
-        //Abrindo espaço para o novo ponteiro
-        for(j = 81; j > k; j--){
-            PonteiroVirtual[j] = PonteiroVirtual[j-1];
-        }
-        PonteiroVirtual[k+1] = filho;
-
-        novoInterno->ehfolha = false;
-        //Dividindo o cursor em duas páginas
-        cursor->elementos = 40;
-        novoInterno->elementos = 41;
-        // Adicionando elementos e ponteiros na Nova Página
-        for(k = 0, j = cursor->elementos+1; k < novoInterno->elementos; k++, j++){
-            novoInterno->idx[k] = ChaveVirtual[j];
-        }
-        for(k = 0, j = cursor->elementos+1; k < novoInterno->elementos+1; k++, j++){
-            novoInterno->pont_tree[k] = PonteiroVirtual[j];
-        }
-        if(cursor == raiz){ // Se o cursor for Página Raiz, criamos uma nova raiz
-            Pagina* novaRaiz = new Pagina;
-            novaRaiz->idx[0] = novoInterno->idx[0];
-            novaRaiz->pont_tree[0] = cursor;
-            novaRaiz->pont_tree[1] = novoInterno;
-            novaRaiz->ehfolha = false;
-            novaRaiz->elementos = 1;
-            raiz = novaRaiz;
+        if(cursor->elementos < 80){
+            //Se o cursor não estiver cheio
+            //Encontrar a posição correta para a nova chave
+            int k = 0;
+            while((t > cursor->idx[k].tam || (t == cursor->idx[k].tam && i > cursor->idx[k].indice)) && k < cursor->elementos)
+                k++;
+            // Abrindo espaço para nova chave
+            for(int j = cursor->elementos; j > k; j--){
+                cursor->idx[j] = cursor->idx[j-1];
+            }
+            //Abrindo espaço para o novo ponteiro
+            for(int j = cursor->elementos+1; j > k+1; j--){
+                cursor->pont_tree[j] = cursor->pont_tree[j-1];
+            }
+            cursor->idx[k].tam = t;
+            cursor->idx[k].indice = i;
+            cursor->elementos++;
+            cursor->pont_tree[k+1] = filho;
         } else {
-            // Recursão
-            InserirInterno(novoInterno->idx[0].tam, novoInterno->idx[0].indice, EncontrarParente(raiz, cursor), novoInterno);
-        }
+            //Se o cursor estiver cheio
+            //Iniciar a divisão
+            Pagina* novoInterno = new Pagina;
+            //Criando Pagina Interna Virtual
+            indice ChaveVirtual[81];
+            Pagina* PonteiroVirtual[82];
+            for(int k = 0; k < 80; k++){
+                ChaveVirtual[k] = cursor->idx[k];
+            }
+            for(int k = 0; k < 81; k++){
+                PonteiroVirtual[k] = cursor->pont_tree[k];
+            }
+            int k = 0, j;
+            while( (t > ChaveVirtual[k].tam || (t == ChaveVirtual[k].tam && i > ChaveVirtual[k].indice)) && k < 80)
+                k++;
+            //Abrindo espaço para as novas chaves
+            for(j = 81; j > k; j--){
+                ChaveVirtual[j] = ChaveVirtual[j-1];
+            }
+            ChaveVirtual[k].indice = i;
+            ChaveVirtual[k].tam = t;
 
+            //Abrindo espaço para o novo ponteiro
+            for(j = 81; j > k; j--){
+                PonteiroVirtual[j] = PonteiroVirtual[j-1];
+            }
+            PonteiroVirtual[k+1] = filho;
+
+            novoInterno->ehfolha = false;
+            //Dividindo o cursor em duas páginas
+            cursor->elementos = 40;
+            novoInterno->elementos = 41;
+            // Adicionando elementos e ponteiros na Nova Página
+            for(k = 0, j = cursor->elementos+1; k < novoInterno->elementos; k++, j++){
+                novoInterno->idx[k] = ChaveVirtual[j];
+            }
+            for(k = 0, j = cursor->elementos+1; k < novoInterno->elementos+1; k++, j++){
+                novoInterno->pont_tree[k] = PonteiroVirtual[j];
+            }
+            if(cursor == raiz){ // Se o cursor for Página Raiz, criamos uma nova raiz
+                Pagina* novaRaiz = new Pagina;
+                novaRaiz->idx[0] = novoInterno->idx[0];
+                novaRaiz->pont_tree[0] = cursor;
+                novaRaiz->pont_tree[1] = novoInterno;
+                novaRaiz->ehfolha = false;
+                novaRaiz->elementos = 1;
+                raiz = novaRaiz;
+            } else {
+                // Recursão
+                InserirInterno(novoInterno->idx[0].tam, novoInterno->idx[0].indice, EncontrarParente(raiz, cursor), novoInterno);
+            }
+        }
     }
 }
 
-Pagina* BPlus::EncontrarParente(Pagina* raiz, Pagina* cursor){}
+// Encontra o Pai
+Pagina* BPlus::EncontrarParente(Pagina* cursor, Pagina* filho){
+    Pagina* parente;
+    // Ignora páginas folha, pois folha não pode ser pai
+    if(cursor->ehfolha || (cursor->pont_tree[0])->ehfolha){
+        return NULL;
+    }
+    for(int i = 0; i < cursor->elementos+1; i++){
+        if(cursor->pont_tree[i] == filho){
+            parente = cursor;
+            return parente;
+        } else {
+            parente = EncontrarParente(cursor->pont_tree[i], filho);
+            if(parente != NULL){
+                return parente;
+            }
+        }
+    }
+    return parente;
+}
 
 int main(){} 
