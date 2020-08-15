@@ -53,7 +53,7 @@ class SeqSet {
     SeqSet();
 	
     int BuscarBloco(pacote& _p); //retorna o id do bloco encontrado 
-    void Inserir(pacote& _p);  
+    Cabecalho Inserir(pacote& _p);  
     bool BuscarPacote(pacote& _p);
     pacote EncontraPacote(unsigned tamanho, unsigned indice);
     void AlterarPacote(pacote& _p);
@@ -176,7 +176,7 @@ void selectionSort(pacote arr[], unsigned n){
     }  
 }
 
-void SeqSet::Inserir(pacote& _p) {
+Cabecalho SeqSet::Inserir(pacote& _p) {
     Bloco aux;
     Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
     unsigned limBloco = 80; // Limite de qntdade de dados para cada bloco
@@ -261,6 +261,7 @@ void SeqSet::Inserir(pacote& _p) {
         
         arq.close();
     }
+    return cabSS;
 }
 
 pacote SeqSet::EncontraPacote(unsigned tamanho, unsigned indice) {
@@ -450,7 +451,7 @@ class BPlus {
     Pagina* raiz;
     public:
     BPlus();
-    void Inserir (unsigned t, unsigned i);
+    void Inserir (unsigned t, unsigned i, Cabecalho cab);
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
     Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
     Pagina* Buscar (unsigned c1, unsigned c2); //retorna o endereço da página
@@ -518,8 +519,8 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
         cerr << "erro na busca!" << endl;
 }
 
-
-void BPlus::Inserir(unsigned t, unsigned i){
+// Inserir chaves (Tamanho e Índice) e como terceiro argumento Cabeçalho do Sequence Set
+void BPlus::Inserir(unsigned t, unsigned i, Cabecalho cab){
 
     if(raiz == NULL){
         raiz->idx[0].indice = i;
