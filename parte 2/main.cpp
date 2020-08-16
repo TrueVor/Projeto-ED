@@ -53,7 +53,7 @@ class SeqSet {
     SeqSet();
 	
     int BuscarBloco(pacote& _p); //retorna o id do bloco encontrado 
-    Cabecalho Inserir(pacote& _p);  
+    int Inserir(pacote& _p);
     bool BuscarPacote(pacote& _p);
     pacote EncontraPacote(unsigned tamanho, unsigned indice);
     void AlterarPacote(pacote& _p);
@@ -176,7 +176,9 @@ void selectionSort(pacote arr[], unsigned n){
     }  
 }
 
-Cabecalho SeqSet::Inserir(pacote& _p) {
+// Retorna a Posição Relativa do Bloco que fora inserido os dados
+int SeqSet::Inserir(pacote& _p) {
+    int Bl = 0; // Variavel para armazenar a posição relativa do bloco que fora inserido os dados
     Bloco aux;
     Bloco aux2; // Utilizado como segundo auxiliar na hora de dividir blocos cheios
     unsigned limBloco = 80; // Limite de qntdade de dados para cada bloco
@@ -228,10 +230,12 @@ Cabecalho SeqSet::Inserir(pacote& _p) {
                     aux.dados[limBloco/2] = _p;
                     aux.cabBloco.quantidade += 1;
                     selectionSort(aux.dados, aux.cabBloco.quantidade);
+                    Bl = aux.idBloco;
                 } else { // Insere no pacote criado
                     aux2.dados[limBloco/2] = _p;
                     aux2.cabBloco.quantidade += 1;
                     selectionSort(aux2.dados, aux2.cabBloco.quantidade);
+                    Bl = aux2.idBloco;
                 }
                 // Inserir na memória o Cabeçalho , Bloco aux e Bloco aux2
                 PosAbs = 0;
@@ -256,12 +260,13 @@ Cabecalho SeqSet::Inserir(pacote& _p) {
                 arq.clear();
                 arq.seekp(PosAbs); // Posição Absoluta do Bloco aux
                 arq.write((char *) &aux, sizeof(Bloco));
+                Bl = pos;
             }
         }
         
         arq.close();
     }
-    return cabSS;
+    return Bl; // Retorna a posição relativa do bloco que fora inserido os dados
 }
 
 pacote SeqSet::EncontraPacote(unsigned tamanho, unsigned indice) {
@@ -427,7 +432,7 @@ class Pagina {
     private:
     indice idx[80]; 
     Pagina* pont_tree[81]; //ponteiros usados para páginas que não são folhas
-    int pont_seq[81]; //ponteiros usados nas folhas, para acesso ao sequence set
+    int pont_seq; //ponteiro usado nas folhas, para acesso ao sequence set
     bool ehfolha; //indica se a página é folha
     unsigned elementos; //guarda a quantidade de elementos váldos no vetor de indice
     public:
@@ -439,9 +444,9 @@ Pagina::Pagina() {
         idx[i] = {};
     }
     for (int i = 0; i < 81; i++) {
-        pont_seq[i] = {};
         pont_tree[i] = NULL;
     }
+    pont_seq = 0;
     ehfolha = false;
     elementos = 0;
 }
@@ -451,7 +456,7 @@ class BPlus {
     Pagina* raiz;
     public:
     BPlus();
-    void Inserir (unsigned t, unsigned i, Cabecalho cab);
+    void Inserir (unsigned t, unsigned i, int bloco);
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
     Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
     Pagina* Buscar (unsigned c1, unsigned c2); //retorna o endereço da página
@@ -519,8 +524,8 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
         cerr << "erro na busca!" << endl;
 }
 
-// Inserir chaves (Tamanho e Índice) e como terceiro argumento Cabeçalho do Sequence Set
-void BPlus::Inserir(unsigned t, unsigned i, Cabecalho cab){
+// Inserir chaves (Tamanho e Índice) e como terceiro argumento Posição Relativa do Bloco no Sequence Set
+void BPlus::Inserir(unsigned t, unsigned i, int bloco){
 
     if(raiz == NULL){
         raiz->idx[0].indice = i;
@@ -550,6 +555,7 @@ void BPlus::Inserir(unsigned t, unsigned i, Cabecalho cab){
             precursor->elementos++;
             precursor->pont_tree[precursor->elementos] = precursor->pont_tree[precursor->elementos-1];
             precursor->pont_tree[precursor->elementos-1] = NULL;
+            precursor->pont_seq = bloco;
         } else { // Caso a Página estiver cheia, iniciar a divisão da mesma.
             
             // Criando nova página
@@ -574,6 +580,8 @@ void BPlus::Inserir(unsigned t, unsigned i, Cabecalho cab){
             // Dividindo o precursor em duas páginas folha
             precursor->elementos = 40;
             novaPagina->elementos = 41;
+            precursor->pont_seq = bloco;
+            novaPagina->pont_seq = bloco;
             // Fazendo precursor apontar para a nova Página folha
             precursor->pont_tree[precursor->elementos] = novaPagina;
             // Fazendo a Nova Página apontar para a próxima página
