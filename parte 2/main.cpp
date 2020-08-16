@@ -37,6 +37,7 @@ struct InfoBloco {
 
 class Bloco { 
     friend class SeqSet;
+    friend class BPlus;
     private:
     int idBloco; // Posição Relativa do Bloco
     InfoBloco cabBloco; // Cabeçalho do Bloco
@@ -454,13 +455,16 @@ Pagina::Pagina() {
 class BPlus {
     private:
     Pagina* raiz;
+    // Funções auxiliares para Busca e acesso ao arquivo 
+    Pagina* Buscar (unsigned c1, unsigned c2); //retorna uma paina folha
+    int AcessarArquivo(Pagina* folha, unsigned c1, unsigned c2); //retorna id do bloco caso o elemento exista 
+	
     public:
     BPlus();
     void Inserir (unsigned t, unsigned i, int bloco);
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
     Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
-    Pagina* Buscar (unsigned c1, unsigned c2); //retorna o endereço da página
-    void AcessarBloco(Pagina* folha, unsigned c1, unsigned c2);
+    int PegarId (unsigned c1, unsigned c2); // Encontra folha, acessa o arquivo e retorna o id do bloco
     void Alterar (unsigned t, unsigned i);
 };
 
@@ -468,47 +472,60 @@ BPlus::BPlus() {
     raiz = NULL;
 }
 
+int BPlus::PegarId (unsigned c1, unsigned c2) {
+	Pagina* aux = Buscar(c1,c2);
+	int id = Verificar(aux, c1, c2);
+	return id;
+}
+
 //percorre a arvore e retorna a pagina folha em que o elemento deveria estar
 Pagina* BPlus::Buscar(unsigned c1, unsigned c2) {
     Pagina* percorre = raiz;
-    if (percorre -> ehfolha) 
+    bool achou;
+    if (percorre == NULL)
+        return percorre;
+    if (percorre -> ehfolha == true) 
         return percorre;
     
     while (percorre -> ehfolha == false ) {
-        for (int i = 0; i < percorre -> elementos; i++ ) {
+        achou = false;
+        for (unsigned i = 0; i < percorre -> elementos; i++ ) {
             if (c1 < percorre -> idx[i].tam) {
                 percorre = percorre -> pont_tree[i]; //passa para pagina filha
+                achou = true;
             }
 
             else if (c1 == percorre -> idx[i].tam) { //caso a chave primaria for igual, compara com a chave secundaria
                 if (c2 < percorre -> idx[i].indice) {
                     percorre = percorre -> pont_tree[i];
+                    achou = true;
                 }
             }
         }
-        if (percorre -> ehfolha == false) { //caso c1 seja maior que a ultima posição
+        if (percorre -> ehfolha == false && achou == false) { //caso c1 seja maior que a ultima posição
             percorre = percorre -> pont_tree [percorre->elementos]; //ponteiro do ultimo elemento
         }
     }
-    return percorre;
+    return percorre; 
 }
 
 //recebe uma página folha e acessa o sequence set através dela
-void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
+int BPlus::AcessarArquivo(Pagina* folha, unsigned c1, unsigned c2) {
     Bloco aux; //variavel para passar o bloco do arquivo para memória;
     if (folha != NULL && folha->ehfolha == true) {
         //achando pos do elemento desejado
         bool achou = false;
-        int pos = 0;
+        unsigned pos = 0;
         while (achou != false && pos < folha->elementos) {
             if (folha->idx[pos].tam == c1 && folha->idx[pos].indice == c2) {
                 achou = true;
-            } else
+            } else {
                 pos++;
+			}
         }
         if (achou) {
             ifstream arq(NOMEARQUIVO, ios::binary);
-            int pos_relativa = folha->pont_seq[pos+1]; //posição do elemento encontrado no bloco
+            int pos_relativa = folha->pont_seq[pos]; //posição do elemento encontrado no bloco
             
             //lendo dados do arquivo
             long long int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * pos_relativa));
@@ -516,12 +533,21 @@ void BPlus::AcessarBloco(Pagina* folha, unsigned c1, unsigned c2) {
             arq.read((char*) &aux, sizeof(Bloco));
             arq.close();
             //nesse trecho o bloco está armazenado em aux
+            for (int i = 0; i < aux.cabBloco.quantidade; i++) {
+                if (aux.dados[i].tamanho == c1 && aux.dados[i].indice == c2 ) {
+                    return aux.idBloco; //o elemento existe no arquivo
+                }
+			}
         }
-        else 
-            cerr << "elemento não encontrado!" << endl;
+        else { 
+            cerr << "elemento não existe no arquivo!" << endl;
+            return -1;
+		}
     }
-    else 
+    else {
         cerr << "erro na busca!" << endl;
+        return -1;
+	}
 }
 
 // Inserir chaves (Tamanho e Índice) e como terceiro argumento Posição Relativa do Bloco no Sequence Set
