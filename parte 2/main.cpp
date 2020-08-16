@@ -465,7 +465,8 @@ class BPlus {
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
     Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
     int PegarId (unsigned c1, unsigned c2); // Encontra folha, acessa o arquivo e retorna o id do bloco
-    void Alterar (unsigned c1, unsigned c2);
+    void Alterar (unsigned c1, unsigned c2); //Altera elemento do arquivo usando a arvore para acessar
+    pacote AcharPacote (unsigned c1, unsigned c2); 
 };
 
 BPlus::BPlus() {
@@ -603,6 +604,35 @@ void BPlus::Alterar(unsigned c1, unsigned c2) {
             cout << "Erro na alteração!" << endl;
         }
     }
+}
+
+pacote BPlus::AcharPacote(unsigned c1, unsigned c2) {
+    Bloco aux;
+    pacote _p;
+    _p.indice = c2;
+    _p.tamanho = c1;
+    if (!PegarId (c1,c2)) {
+        cerr << "Pacote não encontrado!" << endl;
+        return {};
+    }
+    else {
+        int posBloco = PegarId(c1, c2);
+        ifstream arq(NOMEARQUIVO, ios::binary);
+        //lendo dados do arquivo
+        int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * posBloco));
+        arq.seekg(posAbs);
+        arq.read((char*) &aux, sizeof(Bloco));
+        arq.close();
+        //busca sequencial no vetor
+        int tam = aux.cabBloco.quantidade - 1;
+        for (int i = 0; i < tam; i++) {
+            if ((aux.dados[i].tamanho == c1) && (aux.dados[i].indice == c2))
+                return aux.dados[i];
+        }
+        _p = {};
+        return _p;
+    }
+    return {};
 }
 
 // Inserir chaves (Tamanho e Índice) e como terceiro argumento Posição Relativa do Bloco no Sequence Set
