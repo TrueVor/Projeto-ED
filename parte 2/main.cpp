@@ -525,7 +525,7 @@ int BPlus::AcessarArquivo(Pagina* folha, unsigned c1, unsigned c2) {
         }
         if (achou) {
             ifstream arq(NOMEARQUIVO, ios::binary);
-            int pos_relativa = folha->pont_seq[pos]; //posição do elemento encontrado no bloco
+            int pos_relativa = folha->pont_seq; //posição do elemento encontrado no bloco
             
             //lendo dados do arquivo
             long long int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * pos_relativa));
