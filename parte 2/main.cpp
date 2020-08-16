@@ -465,7 +465,7 @@ class BPlus {
     void InserirInterno(unsigned t, unsigned i, Pagina* cursor, Pagina* filho);
     Pagina* EncontrarParente(Pagina* cursor, Pagina* filho);
     int PegarId (unsigned c1, unsigned c2); // Encontra folha, acessa o arquivo e retorna o id do bloco
-    void Alterar (unsigned t, unsigned i);
+    void Alterar (unsigned c1, unsigned c2);
 };
 
 BPlus::BPlus() {
@@ -548,6 +548,61 @@ int BPlus::AcessarArquivo(Pagina* folha, unsigned c1, unsigned c2) {
         cerr << "erro na busca!" << endl;
         return -1;
 	}
+}
+
+void BPlus::Alterar(unsigned c1, unsigned c2) {
+    if (!PegarId(c1, c2)) {
+        cerr << "Pacote não encontrado!";
+    }
+    else {
+        Bloco aux;
+        int pos = PegarId(c1, c2);
+        ifstream arq(NOMEARQUIVO, ios::binary);
+        
+        //lendo dados do arquivo
+        int posAbs = (sizeof(Cabecalho) + (sizeof(Bloco) * pos));
+        arq.seekg(posAbs);
+        arq.read((char*) &aux, sizeof(Bloco));
+        arq.close();
+        
+        float tempo;
+        string altera;
+        bool achou = false;
+        int tam = aux.cabBloco.quantidade-1;
+
+        for (int i = 0; i < tam && achou == false; i++ ) {
+            if (c1 == aux.dados[i].tamanho && c2 == aux.dados[i].indice) {
+                cout << "Digite os dados para alteração:" << endl;
+                cout << "tempo: ";
+                cin >> tempo;
+                aux.dados[i].tempo = tempo;
+                cout << "origem: ";
+                cin >> altera;
+                strcpy(aux.dados[i].origem, altera.c_str()); //copia a string como um vetor de char
+                cout << "destino: ";
+                cin >> altera;
+                strcpy(aux.dados[i].destino, altera.c_str());
+                cout << "protocolo: ";
+                cin >> altera;
+                strcpy(aux.dados[i].protocolo, altera.c_str());
+                cout << "info: ";
+                cin >> altera;
+                strcpy(aux.dados[i].infomarcao, altera.c_str());
+                achou = true;
+            }
+        }
+        ofstream arqOUT(NOMEARQUIVO); //abre o arquivo para escrita
+        if(arq) {
+            posAbs = (sizeof(Bloco)*pos) + sizeof(Cabecalho);
+            arqOUT.seekp(posAbs);
+            arqOUT.write((char*) &aux, sizeof(Bloco)); //escreve o bloco alterado no arquivo
+            arqOUT.close();
+            cout << "Alteração feita com sucesso!" << endl;
+        }
+        else {
+            cout << "Erro na alteração!" << endl;
+        }
+    }
 }
 
 // Inserir chaves (Tamanho e Índice) e como terceiro argumento Posição Relativa do Bloco no Sequence Set
