@@ -474,7 +474,7 @@ BPlus::BPlus() {
 
 int BPlus::PegarId (unsigned c1, unsigned c2) {
 	Pagina* aux = Buscar(c1,c2);
-	int id = Verificar(aux, c1, c2);
+	int id = AcessarArquivo(aux, c1, c2);
 	return id;
 }
 
