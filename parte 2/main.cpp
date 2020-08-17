@@ -1,3 +1,9 @@
+/*
+    
+    Trabalho de Estrutura de Dados - Parte 1
+    Sequence Set
+    Copyright 2020 by Mateus Ribeiro Fratini, João Victor Morais e Victor Huggo
+*/
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -644,7 +650,7 @@ void BPlus::Inserir(unsigned t, unsigned i, int bloco){
         raiz->ehfolha = true;
         raiz->elementos = 1;
     } else {
-        Pagina* precursor = Buscar(t, i);
+        Pagina* precursor = Buscar(t, i); //recebe uma pagina folha
 
         // Inserindo as chaves no precursor que é folha
         if(precursor->elementos < 80){
@@ -665,8 +671,8 @@ void BPlus::Inserir(unsigned t, unsigned i, int bloco){
             precursor->idx[k].indice = i;
             precursor->elementos++;
             precursor->pont_tree[precursor->elementos] = precursor->pont_tree[precursor->elementos-1];
-            precursor->pont_tree[precursor->elementos-1] = NULL;
-            precursor->pont_seq = bloco;
+            precursor->pont_tree[precursor->elementos-1] = NULL; 
+            precursor->pont_seq = bloco; //aponta para a posição relativa do bloco no arquivo
         } else { // Caso a Página estiver cheia, iniciar a divisão da mesma.
             
             // Criando nova página
@@ -725,7 +731,7 @@ void BPlus::Inserir(unsigned t, unsigned i, int bloco){
                     parente = precursor;
                     for(int k = 0; k < precursor->elementos && achou == false; k++){
                         if(k == precursor->elementos - 1){
-                            precursor->pont_tree[k+1];
+                            precursor = precursor->pont_tree[k+1];
                             achou = true;
                         } else if(t < precursor->idx[k].tam){
                             precursor = precursor->pont_tree[k];
@@ -841,4 +847,172 @@ Pagina* BPlus::EncontrarParente(Pagina* cursor, Pagina* filho){
     return parente;
 }
 
-int main(){} 
+
+int main(){
+    ifstream arquivo_csv("captura_pacotes.csv");
+    if (!arquivo_csv) {
+        return EXIT_FAILURE;
+    }
+
+    string linha;
+    int starting_line = 2076361;  //pos da primeira linha a ser lida
+    for (int i = 1; i < starting_line; i += 1) {
+        if(!getline(arquivo_csv,linha)) {  
+            return EXIT_FAILURE;
+        }
+    }
+    
+    int bloco; // parâmetro para inserção na b+
+    SeqSet Set;
+    BPlus Arvore;
+    string campo; // variável para obter um campo de cada linha lida
+    string delimitador = "\",\""; // delimitador entre os campos
+    unsigned posFimCampo; // posição final do campo
+    char opt; // opção para manipulação do arquivo
+    // Variaveis para utilizar na manipulação
+    string alt, source, dest, prot, info;
+    float tempo;
+
+    unsigned tamanho, indice; // Variaveis para utilizar na busca
+
+    pacote umPacote;
+    cout << "Lendo o arquivo csv..." << endl;
+    do {
+        if(!getline(arquivo_csv,linha)){
+            return EXIT_FAILURE;
+        }
+        campo = linha.erase(0,1); // remove primeiro caracter da linha (")
+
+        // Indice.
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        umPacote.indice = stoul(campo);
+
+        // Time
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        umPacote.tempo = stof(campo);
+
+        // Source
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        strcpy(umPacote.origem, campo.c_str());
+
+        // Destination
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        strcpy(umPacote.destino, campo.c_str());
+
+        // Protocol
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        strcpy(umPacote.protocolo, campo.c_str());
+
+        // Length
+        posFimCampo = linha.find(delimitador);
+        campo = linha.substr(0, posFimCampo);
+        linha.erase(0, posFimCampo + delimitador.length());
+        umPacote.tamanho = stoul(campo);
+
+        // Info
+        posFimCampo = linha.rfind("\"");
+        campo = linha.substr(0, posFimCampo);
+        strcpy(umPacote.infomarcao, campo.c_str());
+
+        bloco=Set.Inserir(umPacote);
+        //Arvore.Inserir(umPacote.tamanho, umPacote.indice, bloco);
+        cout << bloco;
+        
+    } while (umPacote.indice <  2162875);
+    
+    system("cls"); //comando para limpar a tela quando a leitura terminar.
+
+    cin >> opt;
+    
+    do {
+        cout << endl << "Digite uma das teclas abaixo para manipulação do arquivo:" << endl;
+        cout << "a - Alterar dados | i - Inserção de dados" << endl;
+        cout << "b - Busca de dados específicos | c - Encerra o programa" << endl;
+        switch (opt) {
+            case 'a': // Alterar dados específicos 
+                cout << endl << "Digite a chave primaria Tamanho a ser procurada";
+                cin >> tamanho;
+                umPacote.tamanho = tamanho;
+                cout << endl << "Digite a chave secundaria Indice a ser procurada";
+                cin >> indice;
+                umPacote.indice = indice;
+                Arvore.Alterar(tamanho, indice);
+                break;
+
+            case 'i': // Inserção de dados
+                cout << "Digite os dados para inserir:" << endl;
+                cout << "Índice: ";
+                cin >> indice;
+                umPacote.indice = indice;
+                cout << endl << "tempo: ";
+                cin >> tempo;
+                umPacote.tempo = tempo;
+                cout << endl << "origem: ";
+                cin >> alt;
+                strcpy(umPacote.origem, alt.c_str()); // copia a string como um vetor de char
+                cout << endl << "destino: ";
+                cin >> alt;
+                strcpy(umPacote.destino, alt.c_str());
+                cout << endl << "protocolo: ";
+                cin >> alt;
+                strcpy(umPacote.protocolo, alt.c_str());
+                cout << endl << "Tamanho: ";
+                cin >> tamanho;
+                umPacote.tamanho = tamanho;
+                cout << endl << "info: ";
+                cin >> alt;
+                strcpy(umPacote.infomarcao, alt.c_str());
+
+                bloco = Set.Inserir(umPacote);
+                Arvore.Inserir(tamanho, indice, bloco);
+                break;
+
+            case 'b': // Busca de elementos a partir da chave primária Tamanho e chave secundária Índice
+                cout << endl << "Digite a chave primaria Tamanho para busca";
+                cin >> tamanho;
+                cout << endl << "Digite a chave secundaria Indice para busca";
+                cin >> indice;
+                umPacote.tamanho = tamanho;
+                umPacote.indice = indice;
+                if(Set.BuscarPacote(umPacote)) {
+                    umPacote = Arvore.AcharPacote(tamanho, indice);
+
+					cout << endl << "Indice: " << umPacote.indice << " ";
+					cout << endl << "Tempo: " << umPacote.tempo << " ";
+					source = umPacote.origem;
+					cout << endl << "Origem: " << source << " ";
+					dest =  umPacote.destino;
+					cout << endl << "Destino: " << dest << " ";
+					prot =  umPacote.protocolo;
+					cout << endl << "Protocolo: " << prot << " ";
+					cout << endl << "Tamanho: " << umPacote.tamanho << " ";
+					info = umPacote.infomarcao;
+					cout << endl << "Informação: " << info << endl;
+				}
+                break;
+
+            case 'c': // encerra
+                break;
+            
+            default:
+                cout << "Caractere inválido" << endl;
+                break;
+        }
+
+        cin >> opt;
+
+    } while (opt != 'c');
+
+    return 0;
+}
+
