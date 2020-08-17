@@ -1,6 +1,6 @@
 /*
     
-    Trabalho de Estrutura de Dados - Parte 1
+    Trabalho de Estrutura de Dados - Parte 2
     Sequence Set
     Copyright 2020 by Mateus Ribeiro Fratini, João Victor Morais e Victor Huggo
 */
